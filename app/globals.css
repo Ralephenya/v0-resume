@@ -148,6 +148,73 @@
     font-family: var(--font-orbitron);
   }
 
+  .hero-background {
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  .hero-text-shadow {
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.7), 2px 2px 4px
+      rgba(0, 0, 0, 1);
+  }
+
+  .hero-gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #e9ecef 75%, #ffffff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+  }
+
+  .hero-red-text {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #f87171 50%, #ef4444 75%, #dc2626 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.8));
+  }
+
+  .hero-overlay-enhanced {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.85) 25%,
+      rgba(0, 0, 0, 0.75) 50%,
+      rgba(139, 0, 0, 0.3) 75%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+  }
+
+  .hero-button-primary {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-button-primary:hover {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) scale(1.05);
+  }
+
+  .hero-button-secondary {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-button-secondary:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) scale(1.05);
+  }
+
   .racing-stripe {
     background: linear-gradient(
       45deg,
@@ -452,5 +519,301 @@
 
   .headlight-active .headlight-beam {
     opacity: 1;
+  }
+
+  /* Particles background animation */
+  .particles-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(2px 2px at 20px 30px, rgba(214, 0, 28, 0.3), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(0, 51, 160, 0.4), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(214, 0, 28, 0.2), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(0, 51, 160, 0.3), transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: particles-float 20s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes particles-float {
+    0% {
+      transform: translateY(0px) translateX(0px);
+    }
+    33% {
+      transform: translateY(-100px) translateX(100px);
+    }
+    66% {
+      transform: translateY(-200px) translateX(-50px);
+    }
+    100% {
+      transform: translateY(-300px) translateX(0px);
+    }
+  }
+
+  /* Speed blur overlay for hero section */
+  .speed-blur-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(214, 0, 28, 0.05) 25%,
+      rgba(0, 51, 160, 0.05) 50%,
+      rgba(214, 0, 28, 0.05) 75%,
+      transparent 100%
+    );
+    animation: speed-blur 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes speed-blur {
+    0%,
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    50% {
+      transform: translateX(100%);
+      opacity: 1;
+    }
+  }
+
+  /* Dashboard indicators styling */
+  .dashboard-indicator {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(214, 0, 28, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(214, 0, 28, 0.2);
+  }
+
+  /* Fade in animation for hero text */
+  .animate-fade-in {
+    animation: fade-in 2s ease-out;
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animated skill meter fills */
+  .animated-fill {
+    animation: fill-meter 2s ease-out 0.5s both;
+  }
+
+  @keyframes fill-meter {
+    0% {
+      width: 0%;
+    }
+    100% {
+      width: var(--target-width, 0%);
+    }
+  }
+
+  /* Enhanced skill card hover effects */
+  .skill-card:hover .rev-fill {
+    box-shadow: 0 0 15px rgba(214, 0, 28, 0.8), 0 0 25px rgba(0, 51, 160, 0.4);
+    animation: rev-pulse 1s ease-in-out;
+  }
+
+  @keyframes rev-pulse {
+    0%,
+    100% {
+      transform: scaleX(1);
+    }
+    50% {
+      transform: scaleX(1.05);
+    }
+  }
+
+  /* Racing track line animation */
+  .racing-track-line {
+    background: linear-gradient(180deg, #d6001c 0%, #0033a0 25%, #d6001c 50%, #0033a0 75%, #d6001c 100%);
+    background-size: 100% 200%;
+    animation: track-flow 4s linear infinite;
+  }
+
+  @keyframes track-flow {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 0% 200%;
+    }
+  }
+
+  /* Pulse markers for timeline */
+  .pulse-marker {
+    animation: marker-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes marker-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 10px rgba(214, 0, 28, 0.5);
+    }
+    50% {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0, 51, 160, 0.8), 0 0 30px rgba(214, 0, 28, 0.6);
+    }
+  }
+
+  /* Timeline item animations */
+  .timeline-item {
+    opacity: 0;
+    transform: translateX(-50px);
+    animation: slide-in-timeline 0.8s ease-out forwards;
+  }
+
+  .timeline-item:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .timeline-item:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  .timeline-item:nth-child(4) {
+    animation-delay: 0.6s;
+  }
+  .timeline-item:nth-child(5) {
+    animation-delay: 0.8s;
+  }
+
+  @keyframes slide-in-timeline {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Project card hover animations */
+  .project-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .project-card:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+
+  /* Testimonial card animations */
+  .testimonial-card {
+    animation: testimonial-glow 4s ease-in-out infinite;
+  }
+
+  @keyframes testimonial-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(214, 0, 28, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(0, 51, 160, 0.2), 0 0 40px rgba(214, 0, 28, 0.1);
+    }
+  }
+
+  /* Contact card hover effect */
+  .contact-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(214, 0, 28, 0.3);
+  }
+
+  /* Scroll-triggered animations */
+  .animate-in {
+    animation: scroll-fade-in 0.8s ease-out forwards;
+  }
+
+  @keyframes scroll-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(50px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Enhanced button hover effects */
+  button:hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Typing cursor animation */
+  .animate-pulse {
+    animation: cursor-blink 1s infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Enhanced neon effects */
+  .neon-glow-red:hover {
+    box-shadow: 0 0 25px rgba(214, 0, 28, 0.7), 0 0 35px rgba(214, 0, 28, 0.5), inset 0 0 25px rgba(214, 0, 28, 0.1);
+    transform: scale(1.05);
+  }
+
+  .neon-glow-blue:hover {
+    box-shadow: 0 0 25px rgba(0, 51, 160, 0.7), 0 0 35px rgba(0, 51, 160, 0.5), inset 0 0 25px rgba(0, 51, 160, 0.1);
+    transform: scale(1.05);
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Performance optimizations */
+  .parallax-bg,
+  .particles-bg,
+  .speed-blur-overlay {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .particles-bg,
+    .speed-blur-overlay,
+    .racing-track-line,
+    .pulse-marker,
+    .testimonial-card {
+      animation: none;
+    }
+
+    .skill-card:hover .rev-fill {
+      animation: none;
+    }
+
+    * {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 }
