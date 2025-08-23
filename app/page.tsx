@@ -17,7 +17,11 @@ import {
   Zap,
   Code,
   Database,
+    Link,
   Cloud,
+  MessageSquare,
+  Briefcase,
+  Clipboard,
   Cpu,
   Server,
   Globe,
@@ -52,7 +56,7 @@ export default function Portfolio() {
   const heroRef = useRef(null)
   const sectionsRef = useRef([])
 
-  const fullText = "I'm Your Name, a software engineer building high-performance solutions with precision and speed."
+  const fullText = "I'm Steve Ralephenya, a software engineer building high-performance solutions with precision and speed."
 
   useEffect(() => {
     if (isTyping && typedText.length < fullText.length) {
@@ -72,7 +76,14 @@ export default function Portfolio() {
 
       // Update lap counter based on scroll progress
       const documentHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollProgress = currentScrollY / documentHeight
+      const scrollProgress = currentScrollY / documentHeight;
+      
+      if(scrollProgress <= 0)
+      {
+        setLapCounter(0);
+        return;
+      }
+      
       setLapCounter(Math.floor(scrollProgress * 10))
     }
 
@@ -131,168 +142,241 @@ export default function Portfolio() {
     console.log("[v0] 🔧 Gear shift sound!")
   }
 
+  const playHoverSoundAndSendEmail = () => {
+    console.log("[v0] 🔧 Gear shift sound!")
+  }
+
   const mockProjects = [
     {
-      name: "enterprise-api-gateway",
+      name: "IdentityServer4 Example",
       description:
-        "High-performance API gateway with rate limiting, authentication, and real-time monitoring built with ASP.NET Core",
-      stargazers_count: 234,
-      forks_count: 45,
-      topics: ["csharp", "aspnet", "api-gateway", "microservices"],
-      html_url: "#",
+          "A robust authentication and authorization solution built with IdentityServer4 and ASP.NET Core, demonstrating secure user management, OAuth 2.0, and API protection.",
+      stargazers_count: null, // You can fill in the actual star count later
+      forks_count: null,
+      topics: ["csharp", "aspnet", "identityserver4", "security", "authentication"],
+      html_url: "https://github.com/Ralephenya/IdentityServer4Example",
       category: "Web",
       language: "C#",
-      updated_at: "2024-01-15",
+      updated_at: "2024-01-15", // You can get the last updated date from GitHub
     },
     {
-      name: "whatsapp-business-integration",
-      description: "Scalable WhatsApp Business API integration with dynamic templates and Twilio integration",
-      stargazers_count: 189,
-      forks_count: 32,
-      topics: ["nodejs", "whatsapp", "twilio", "messaging"],
-      html_url: "#",
-      category: "Web",
-      language: "JavaScript",
+      name: "PerfectPay.App",
+      description:
+          "A cross-platform mobile application developed with .NET MAUI, showcasing expertise in mobile UI/UX, data persistence, and C# development.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["dotnet-maui", "csharp", "mobile", "xamarin", "app"],
+      html_url: "https://github.com/Ralephenya/PerfectPay.App",
+      category: "Mobile",
+      language: "C#",
       updated_at: "2024-01-10",
     },
     {
-      name: "azure-terraform-modules",
-      description: "Production-ready Terraform modules for Azure infrastructure with CI/CD pipelines",
-      stargazers_count: 156,
-      forks_count: 28,
-      topics: ["terraform", "azure", "devops", "infrastructure"],
-      html_url: "#",
-      category: "Cloud",
-      language: "HCL",
-      updated_at: "2024-01-08",
+      name: "CodeQuotes",
+      description:
+          "A mobile application built with .NET MAUI that serves daily coding quotes, demonstrating client-side data handling and a clean, modern user interface.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["dotnet-maui", "csharp", "mobile", "api", "quotes"],
+      html_url: "https://github.com/Ralephenya/CodeQuotes",
+      category: "Mobile",
+      language: "C#",
+      updated_at: "2024-01-09",
     },
     {
-      name: "rag-nlp-pipeline",
-      description: "RAG-based NLP pipeline with Python for intelligent document processing and search",
-      stargazers_count: 298,
-      forks_count: 67,
-      topics: ["python", "nlp", "rag", "ai"],
-      html_url: "#",
-      category: "AI",
-      language: "Python",
+      name: "BreakfastMenu.App",
+      description:
+          "A full-stack application for managing a breakfast menu, highlighting skills in a web framework (like ASP.NET Core) and front-end development with .NET.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["csharp", "dotnet", "full-stack", "web-dev"],
+      html_url: "https://github.com/Ralephenya/BreakfastMenu.App",
+      category: "Web",
+      language: "C#",
       updated_at: "2024-01-12",
     },
     {
-      name: "docker-microservices",
-      description: "Containerized microservices architecture with Docker, Kubernetes, and service mesh",
-      stargazers_count: 178,
-      forks_count: 41,
-      topics: ["docker", "kubernetes", "microservices", "devops"],
-      html_url: "#",
-      category: "Cloud",
-      language: "Go",
+      name: "MauiWeather",
+      description:
+          "A weather application developed with .NET MAUI, showcasing integration with external APIs and dynamic UI updates based on real-time data.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["dotnet-maui", "csharp", "mobile", "api"],
+      html_url: "https://github.com/Ralephenya/MauiWeather",
+      category: "Mobile",
+      language: "C#",
       updated_at: "2024-01-05",
     },
     {
-      name: "angular-dashboard",
-      description: "Real-time analytics dashboard built with Angular, TypeScript, and WebSocket connections",
-      stargazers_count: 145,
-      forks_count: 29,
-      topics: ["angular", "typescript", "dashboard", "websockets"],
-      html_url: "#",
-      category: "Web",
-      language: "TypeScript",
+      name: "Custom .NET Template",
+      description:
+          "A personal .NET template project demonstrating an understanding of framework configuration and the ability to customize existing templates to fit a specific style and architecture.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["csharp", "dotnet", "templates", "configuration"],
+      html_url: "https://github.com/Ralephenya/NET-Template", // Please update with the correct URL
+      category: "DevOps",
+      language: "C#",
       updated_at: "2024-01-14",
     },
-  ]
-
+    {
+      name: "Discovery System Integration",
+      description:
+          "Contributed to the successful integration of Discovery's insurance system via API to enable real-time data exchange and enhance client services.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["api-integration", "insurance-tech", "csharp", "rest-api"],
+      html_url: "#",
+      category: "APIs & Integrations",
+      language: "C#",
+      updated_at: "2025-02-01",
+    },
+    {
+      name: "Twilio WhatsApp Messaging",
+      description:
+          "Developed and integrated Twilio for WhatsApp messaging, enabling insurance advisors to manage customer communication and assign messages within the CRM system.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["twilio", "whatsapp", "messaging", "crm", "csharp"],
+      html_url: "#",
+      category: "APIs & Integrations",
+      language: "C#",
+      updated_at: "2025-03-01",
+    },
+    {
+      name: "OrderEazi ERP & Inventory System",
+      description:
+          "Enhanced an order and inventory management system by integrating with ERP solutions like Sage and Xero, optimizing order fulfillment and improving customer-facing features.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["erp", "inventory-management", "csharp", "aspnet", "rest-api"],
+      html_url: "#",
+      category: "Web",
+      language: "C#",
+      updated_at: "2024-04-01",
+    },
+    {
+      name: "Meta WhatsApp Integration",
+      description:
+          "Developed a dynamic and generic template integration with Meta's WhatsApp API, allowing the system to fill in values and send seamless messages based on pre-built templates.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["meta-api", "whatsapp", "messaging", "api-integration"],
+      html_url: "#",
+      category: "APIs & Integrations",
+      language: "C#",
+      updated_at: "2024-03-01",
+    },
+    {
+      name: "ShipLogic & Skynet Integrations",
+      description:
+          "Worked with courier services like ShipLogic and Skynet to provide accurate shipment fees and develop a required-boxes algorithm for shipments, using API integration and JSON/XML.",
+      stargazers_count: null,
+      forks_count: null,
+      topics: ["api-integration", "logistics", "algorithm", "json", "xml"],
+      html_url: "#",
+      category: "DevOps",
+      language: "C#",
+      updated_at: "2024-01-01",
+    },
+  ];
   const skillCategories = {
     "Languages & Frameworks": [
-      { name: "C# / ASP.NET", level: 95, icon: Code },
-      { name: "Angular", level: 92, icon: Globe },
-      { name: "TypeScript", level: 90, icon: Code },
-      { name: "Vue.js", level: 88, icon: Globe },
-      { name: "Node.js", level: 89, icon: Server },
-      { name: "JavaScript", level: 93, icon: Code },
-      { name: "HTML/CSS", level: 91, icon: Globe },
-      { name: "jQuery", level: 85, icon: Code },
+      { name: "C# / ASP.NET", level: 85, icon: Code },
+      { name: "Angular", level: 65, icon: Globe },
+      { name: "TypeScript", level: 60, icon: Code },
+      { name: "React", level: 55, icon: Globe },
+      { name: "Vue.js", level: 65, icon: Globe },
+      { name: "Node.js", level: 70, icon: Server },
+      { name: "JavaScript", level: 78, icon: Code },
+      { name: "HTML/CSS", level: 85, icon: Globe },
+      { name: "jQuery", level: 80, icon: Code },
+    ],
+    "APIs & Integrations": [
+      { name: "REST APIs", level: 75, icon: Link },
+      { name: "SOAP / XML", level: 55, icon: Link },
+      { name: "JSON", level: 80, icon: Link },
+      { name: "Twilio (WhatsApp)", level: 70, icon: MessageSquare },
+      { name: "Meta WhatsApp (Templates)", level: 75, icon: MessageSquare },
+      { name: "ERP Integrations (Sage, Xero, Palladium)", level: 65, icon: Briefcase },
     ],
     "Cloud & DevOps": [
-      { name: "AWS", level: 91, icon: Cloud },
-      { name: "Azure", level: 89, icon: Cloud },
-      { name: "Docker", level: 92, icon: Cpu },
-      { name: "CI/CD", level: 88, icon: Wrench },
-      { name: "Git/Bitbucket", level: 94, icon: Code },
-      { name: "Jira/Confluence", level: 86, icon: Wrench },
-      { name: "Bash/JCL", level: 83, icon: Code },
-      { name: "IBM Cloud", level: 81, icon: Cloud },
+      { name: "AWS", level: 60, icon: Cloud },
+      { name: "Azure", level: 40, icon: Cloud },
+      { name: "Docker", level: 70, icon: Cpu },
+      { name: "CI/CD", level: 55, icon: Wrench },
+      { name: "Git / Bitbucket", level: 78, icon: Code },
+      { name: "Jira / Confluence", level: 75, icon: Wrench },
+      { name: "IBM Cloud", level: 45, icon: Cloud },
     ],
     Databases: [
-      { name: "SQL Server", level: 93, icon: Database },
-      { name: "MySQL", level: 88, icon: Database },
+      { name: "SQL Server", level: 85, icon: Database },
+      { name: "MySQL", level: 75, icon: Database },
+      { name: "Milvus (Vector DB)", level: 30, icon: Database },
     ],
     "AI Integration": [
-      { name: "Python (RAG)", level: 87, icon: Brain },
-      { name: "NLP", level: 84, icon: Brain },
+      { name: "Python (RAG)", level: 45, icon: Brain },
+      { name: "NLP", level: 40, icon: Brain },
+      { name: "ML.NET / TorchSharp", level: 35, icon: Brain },
     ],
     Practices: [
-      { name: "Agile (Scrum)", level: 92, icon: Wrench },
-      { name: "TDD", level: 89, icon: Wrench },
+      { name: "Agile (Scrum)", level: 70, icon: Wrench },
+      { name: "Test-Driven Development (TDD)", level: 75, icon: Wrench },
+      { name: "Project Management", level: 65, icon: Clipboard },
     ],
   }
 
   const journey = [
     {
-      year: "2018",
-      title: "Junior Software Developer",
-      company: "TechStart Solutions",
-      location: "Cape Town, South Africa",
-      description: "Started building enterprise web applications with C# and ASP.NET",
-      coordinates: [-33.9249, 18.4241],
-    },
-    {
-      year: "2020",
-      title: "Full Stack Developer",
-      company: "Digital Innovation Labs",
-      location: "Johannesburg, South Africa",
-      description: "Led development of cloud-native applications with Angular and Azure",
-      coordinates: [-26.2041, 28.0473],
-    },
-    {
       year: "2022",
-      title: "Senior Software Engineer",
-      company: "Enterprise Solutions Inc",
-      location: "Durban, South Africa",
-      description: "Architected high-performance APIs and microservices with Docker",
-      coordinates: [-29.8587, 31.0218],
+      title: "Software Developer",
+      company: "Livex Software",
+      location: "Pretoria, South Africa",
+      description:
+          "Contributed to software projects for inventory management, student administration, and client billing systems using ASP.NET Core and SQL.",
+      coordinates: [-25.8241128, 28.3393786],//,
+    },
+    {
+      year: "2023",
+      title: "Junior Full Stack Developer",
+      company: "Warp Development",
+      location: "Pretoria, South Africa",
+      description: "Started as a junior - Enhanced OrderEazi's order and inventory management systems, improving customer-facing features and streamlining internal processes.",
+      coordinates: [-25.7479, 28.2293],
     },
     {
       year: "2024",
-      title: "Lead Software Engineer",
-      company: "CloudTech Innovations",
+      title: "Intermediate Full Stack Developer",
+      company: "Warp Development",
       location: "Pretoria, South Africa",
-      description: "Leading team of 8 engineers on AI-powered enterprise solutions",
+      description: "Worked on the OrderEazi💕 system by integrating it with ERP systems like Sage and Xero. Developed a dynamic template integration with Meta's WhatsApp API. Also, worked with courier services like ShipLogic and Skynet to provide accurate shipment fees and consignment.",
       coordinates: [-25.7479, 28.2293],
     },
-  ]
-
+    {
+      year: "2025",
+      title: "Full Stack Developer",
+      company: "Bsure Insurance Advisors",
+      location: "Johannesburg, South Africa",
+      description: "Integrated Discovery's insurance system via API and developed a Twilio for WhatsApp messaging solution and built in house software",
+      coordinates: [-25.7479, 28.2293],
+    },
+  ];
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "CTO at TechCorp",
-      avatar: "/professional-woman-avatar.png",
+      name: "Riaan Grobler",
+      role: "Mentor/Senior Developer at Warp Development",
+      avatar: "/professional-man-avatar.png", // Replace with actual avatar if available
       quote:
-        "Exceptional technical skills and leadership. Delivered our most complex project 2 weeks ahead of schedule.",
+          "When Steve first joined Warp Development, I had my doubts. But he quickly proved me wrong. He's incredibly dedicated, always the first one in and the last to leave. Steve consistently delivers high-quality work, has a fantastic attitude, and is always eager to take on new challenges. He's a true team player and a valuable asset.",
     },
     {
-      name: "Michael Chen",
-      role: "Product Manager at InnovateLabs",
-      avatar: "/professional-man-avatar.png",
+      name: "Gareth Short", // Assuming you'll add the last name later
+      role: "Project Manager & Database Analytics at Bsure Insurance Advisors",
+      avatar: "/professional-man-avatar.png", // Replace with actual avatar if available
       quote:
-        "Outstanding problem-solving abilities. Transformed our legacy system into a modern, scalable architecture.",
+          "Steve has a rare talent. He's incredibly focused and driven, yet he always makes time to help others. He's a fantastic collaborator, always planning ahead and valuing everyone's input. His punctuality, organization, and emotional intelligence make him a great team player. He's become the go-to person for the team, and his collaborative approach is a breath of fresh air.",
     },
-    {
-      name: "Lisa Rodriguez",
-      role: "Engineering Director at CloudSoft",
-      avatar: "/professional-woman-avatar.png",
-      quote: "Incredible attention to detail and performance optimization. A true engineering perfectionist.",
-    },
-  ]
+  ];
 
   const [activeFilter, setActiveFilter] = useState("All")
 
@@ -363,7 +447,7 @@ export default function Portfolio() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('/motorcycle-rider-helmet.png')`,
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url('/pexels-johann-lowen-903019051-19841948.jpg')`,
             transform: `translateY(${scrollY * 0.3}px)`,
           }}
         />
@@ -385,21 +469,26 @@ export default function Portfolio() {
             <span className="animate-pulse text-red-500">|</span>
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button
-              size="lg"
-              className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-4 neon-glow-red transition-all duration-300 hover:scale-105 shadow-lg shadow-red-500/25"
-              onMouseEnter={playHoverSound}
-            >
-              View My Work
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="text-lg px-8 py-4 border-2 border-blue-500 text-blue-400 hover:bg-blue-500/20 bg-black/50 neon-glow-blue transition-all duration-300 hover:scale-105 shadow-lg shadow-blue-500/25"
-              onMouseEnter={playHoverSound}
-            >
-              Contact Me
-            </Button>
+            <a href="#portfolio">
+              <Button
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-4 neon-glow-red transition-all duration-300 hover:scale-105 shadow-lg shadow-red-500/25"
+                  onMouseEnter={playHoverSound}
+              >
+                View My Work
+              </Button>
+            </a>
+
+            <a href="#contact">
+              <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-4 border-2 border-blue-500 text-blue-400 hover:bg-blue-500/20 bg-black/50 neon-glow-blue transition-all duration-300 hover:scale-105 shadow-lg shadow-blue-500/25"
+                  onMouseEnter={playHoverSound}
+              >
+                Contact Me
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -475,7 +564,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-black" ref={(el) => (sectionsRef.current[2] = el)}>
+      <section id="portfolio" className="py-20 px-6 bg-black" ref={(el) => (sectionsRef.current[2] = el)}>
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-white">Portfolio</h2>
           <p className="text-center text-gray-400 mb-12 text-lg">Dynamic GitHub projects with live filtering</p>
@@ -601,7 +690,7 @@ export default function Portfolio() {
               <MapPin className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h3 className="text-2xl mb-4 text-white">Interactive Map Coming Soon</h3>
               <p className="text-gray-400">
-                Click markers to explore my career journey across Cape Town, Johannesburg, Durban, and Pretoria
+                Click markers to explore my career journey across Johannesburg and Pretoria
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -630,7 +719,7 @@ export default function Portfolio() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-blue-500/20 rounded-lg racing-stripe-overlay"></div>
               <img
-                src="/motorcycle-track-day.png"
+                src="/superbike-5551086_1280.jpg"
                 alt="Track day motorcycle racing"
                 className="rounded-lg shadow-2xl w-full h-80 object-cover border border-gray-800"
               />
@@ -650,15 +739,6 @@ export default function Portfolio() {
                     <div>
                       <h4 className="font-semibold text-white">Motorcycle Racing</h4>
                       <p className="text-sm text-gray-400">Track days and precision riding</p>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-4 hover:shadow-lg hover:shadow-blue-500/20 transition-all bg-black border-gray-800 hover:border-blue-500/50 hover:scale-105">
-                  <div className="flex items-center gap-3">
-                    <Gamepad2 className="h-6 w-6 text-blue-400" />
-                    <div>
-                      <h4 className="font-semibold text-white">Gaming</h4>
-                      <p className="text-sm text-gray-400">Racing sims and competitive gaming</p>
                     </div>
                   </div>
                 </Card>
@@ -726,7 +806,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[7] = el)}>
+      <section id="contact" className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[7] = el)}>
         <div className="max-w-2xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-white">Start Your Engine</h2>
           <p className="text-center text-gray-400 mb-12 text-lg">Ready to accelerate your project?</p>
@@ -757,7 +837,7 @@ export default function Portfolio() {
               />
               <Button
                 className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-3 engine-start-button hover:scale-105 transition-all duration-300 neon-glow-red"
-                onMouseEnter={playHoverSound}
+                onMouseEnter={playHoverSoundAndSendEmail}
               >
                 Send Message
               </Button>
@@ -770,32 +850,40 @@ export default function Portfolio() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-8">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
-                onMouseEnter={playHoverSound}
-              >
-                <Github className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:text-blue-400 text-gray-400 hover:scale-110 transition-all"
-                onMouseEnter={playHoverSound}
-              >
-                <Linkedin className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
-                onMouseEnter={playHoverSound}
-              >
-                <Mail className="h-6 w-6" />
-              </Button>
+              <a href="https://github.com/Ralephenya" target="_blank" rel="noopener noreferrer">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
+                    onMouseEnter={playHoverSound}
+                >
+                  <Github className="h-6 w-6" />
+                </Button>
+              </a>
+
+              <a href="https://www.linkedin.com/in/steve-ralephenya-8ab052197/" target="_blank" rel="noopener noreferrer">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:text-blue-400 text-gray-400 hover:scale-110 transition-all"
+                    onMouseEnter={playHoverSound}
+                >
+                  <Linkedin className="h-6 w-6" />
+                </Button>
+              </a>
+
+              <a href="mailto:bikoralephenya@gmail.com" target="_blank" rel="noopener noreferrer">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
+                    onMouseEnter={playHoverSound}
+                >
+                  <Mail className="h-6 w-6" />
+                </Button>
+              </a>
             </div>
-            <p className="text-gray-400 text-center font-mono">© 2024 Your Name — Engineered with Precision & Speed</p>
+            <p className="text-gray-400 text-center font-mono">© 2025 Steve Ralephenya — Engineered with Precision & Speed</p>
           </div>
         </div>
       </footer>
