@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  output: 'export', // <-- NEW way to export static HTML
   typescript: {
     ignoreBuildErrors: true,
   },
