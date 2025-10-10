@@ -41,6 +41,8 @@ import {
 } from "lucide-react"
 
 export default function Portfolio() {
+  const backgroundImage = process.env.NEXT_PUBLIC_BACKGROUND_IMAGE || '/landing-page-image.jpg';
+
   const [step, setStep] = useState(0);
   const [liveUrl, setLiveUrl] = useState<string | null>(null);
 
@@ -459,7 +461,7 @@ export default function Portfolio() {
           <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url('/pexels-johann-lowen-903019051-19841948.jpg')`,
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url('${backgroundImage}')`,
                 transform: `translateY(${scrollY * 0.3}px)`,
               }}
           />
@@ -581,7 +583,7 @@ export default function Portfolio() {
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <h3 className="text-blue-400 font-bold text-sm mb-1">Why Email?</h3>
-                    <p className="text-gray-400 text-xs">Optional - Get notified when your preview is ready and help us prevent spam submissions.</p>
+                    <p className="text-gray-400 text-xs">Get notified when your preview is ready and help us prevent spam submissions.</p>
                   </div>
                 </div>
               </div>

@@ -97,7 +97,7 @@ export default function SubmissionForm({ onSuccess, onStepChange }: SubmissionFo
                 {/* Email Input */}
                 <div className="space-y-2">
                     <label className="text-sm text-gray-400 block text-left">
-                        Email <span className="text-gray-500">(optional)</span>
+                        Email
                     </label>
                     <Input
                         type="email"
