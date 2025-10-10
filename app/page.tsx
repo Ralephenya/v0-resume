@@ -78,18 +78,16 @@ export default function Portfolio() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const stats = await getGitHubStats({
-          maxRepositories: 99,
-          includePrivateRepos: true,
-        });
+        const stats = await getGitHubStats();
 
-        console.log(stats);
-
+        setCodingStreak(stats.currentStreak);
+        
         setGithubStats({
-          commits: stats.data.totalCommits,
-          pullRequests: stats.data.totalPullRequests,
+          commits: stats.totalCommits,
+          pullRequests: stats.totalPullRequests,
           issues: 0,
-          contributions: stats.data.totalContributions,
+          contributions: stats.totalContributionDays,
+          
         });
       } catch (error) {
         console.error('Failed to fetch GitHub stats', error);
