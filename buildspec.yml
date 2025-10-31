@@ -67,16 +67,35 @@ phases:
   # 3. BUILD - Build your frontend application
   build:
     commands:
+      - echo "=== Before build ==="
+      - ls -la
       - echo "Building frontend..."
       - npm install
       - npm run build
+      - echo "=== After build ==="
+      - ls -la
+      - echo "=== Looking for output directories ==="
+      - find . -maxdepth 2 -type d -name "*build*" -o -name "*out*" -o -name "*dist*"
       - echo "Build complete!"
   
   # 4. POST_BUILD - Upload to S3 and save the URL
   post_build:
     commands:
       - echo "Uploading files to S3..."
-      - aws s3 sync ./out s3://${BUCKET_NAME} --delete
+      - |
+        if [ -d "out" ]; then
+          echo "Found 'out' directory, syncing..."
+          aws s3 sync ./out s3://${BUCKET_NAME} --delete
+        elif [ -d "build" ]; then
+          echo "Found 'build' directory, syncing..."
+          aws s3 sync ./build s3://${BUCKET_NAME} --delete
+        elif [ -d "dist" ]; then
+          echo "Found 'dist' directory, syncing..."
+          aws s3 sync ./dist s3://${BUCKET_NAME} --delete
+        else
+          echo "No standard build directory found, syncing current directory"
+          aws s3 sync . s3://${BUCKET_NAME} --delete --exclude ".git/*" --exclude "node_modules/*"
+        fi
       
       # Generate the website URL
       - export WEBSITE_URL="http://${BUCKET_NAME}.s3-website-us-east-1.amazonaws.com"
