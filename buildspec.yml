@@ -1,0 +1,79 @@
+﻿version: 0.2
+
+phases:
+  # 1. INSTALL - Set up the build environment
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies..."
+  
+  # 2. PRE_BUILD - Prepare bucket name and extract email
+  pre_build:
+    commands:
+      # Get the branch name from the pull request
+      - echo "Branch name is $CODEBUILD_WEBHOOK_HEAD_REF"
+      - export BRANCH_NAME=${CODEBUILD_WEBHOOK_HEAD_REF##*/}
+      - echo "Extracted branch name $BRANCH_NAME"
+      
+      # Extract email from branch name (assumes format: demo/user@email.com/feature-123)
+      # This splits by "/" and gets the second part
+      - export USER_EMAIL=$(echo $BRANCH_NAME | cut -d'/' -f2)
+      - echo "User email is $USER_EMAIL"
+      
+      # Create a unique, S3-compatible bucket name
+      # Replace @ and . with dashes, make it unique with timestamp
+      - export SANITIZED_EMAIL=$(echo $USER_EMAIL | sed 's/@/-at-/g' | sed 's/\./-/g')
+      - export TIMESTAMP=$(date +%s)
+      - export BUCKET_NAME="resume-demo-${SANITIZED_EMAIL}-${TIMESTAMP}"
+      - echo "Bucket name will be $BUCKET_NAME"
+      
+      # Create the S3 bucket
+      - echo "Creating S3 bucket..."
+      - aws s3 mb s3://${BUCKET_NAME} --region us-east-1
+      
+      # Enable static website hosting
+      - echo "Enabling website hosting..."
+      - aws s3 website s3://${BUCKET_NAME} --index-document index.html --error-document error.html
+      
+      # Make bucket public
+      - echo "Setting bucket policy for public access..."
+      - |
+        aws s3api put-bucket-policy --bucket ${BUCKET_NAME} --policy '{
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::'${BUCKET_NAME}'/*"
+          }]
+        }'
+  
+  # 3. BUILD - Build your frontend application
+  build:
+    commands:
+      - echo "Building frontend..."
+      - cd frontend
+      - npm install --legacy-peer-deps
+      - npm run build
+      - echo "Build complete!"
+  
+  # 4. POST_BUILD - Upload to S3 and save the URL
+  post_build:
+    commands:
+      - echo "Uploading files to S3..."
+      - aws s3 sync ./out s3://${BUCKET_NAME} --delete
+      
+      # Generate the website URL
+      - export WEBSITE_URL="http://${BUCKET_NAME}.s3-website-us-east-1.amazonaws.com"
+      - echo "Website deployed at $WEBSITE_URL"
+      
+      # Save data for notification stage
+      - echo "{\"websiteUrl\":\"${WEBSITE_URL}\",\"userEmail\":\"${USER_EMAIL}\",\"bucketName\":\"${BUCKET_NAME}\"}" > build-output.json
+      - cat build-output.json
+
+# Export the build output for next pipeline stage
+artifacts:
+  files:
+    - build-output.json
