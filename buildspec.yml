@@ -36,6 +36,14 @@ phases:
       - echo "Enabling website hosting..."
       - aws s3 website s3://${BUCKET_NAME} --index-document index.html --error-document error.html
       
+      # Disable block public access first
+      - echo "Disabling block public access..."
+      - |
+        aws s3api put-public-access-block \
+          --bucket ${BUCKET_NAME} \
+          --public-access-block-configuration \
+          "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"
+      
       # Make bucket public
       - echo "Setting bucket policy for public access..."
       - |
