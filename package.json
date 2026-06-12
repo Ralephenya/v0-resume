@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "deploy:s3": "next build && aws s3 sync ./out s3://0171-1798-8452-my-bucket --delete && aws cloudfront create-invalidation --distribution-id E2VV89C2YG4XWJ --paths \"/*\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

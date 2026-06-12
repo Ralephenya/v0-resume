@@ -796,6 +796,26 @@
     transform: translateZ(0);
   }
 
+  /* Trophy wall hover */
+  .trophy-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .trophy-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.2);
+  }
+
+  /* Pit board sheen */
+  .pit-board {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Section reveal default state (revealed via .animate-in) */
+  [data-reveal] {
+    opacity: 1;
+  }
+
   /* Reduced motion preferences */
   @media (prefers-reduced-motion: reduce) {
     .particles-bg,

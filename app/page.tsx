@@ -1,986 +1,613 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import ProgressTracker from "./components/ProgressTracker";
-import SubmissionForm from "./components/SubmissionForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { getGitHubStats } from '../services/githubStats';
 import { Textarea } from "@/components/ui/textarea"
 import {
   Github,
   Linkedin,
   Mail,
+  Youtube,
   ExternalLink,
-  Star,
-  GitFork,
+  Download,
   MapPin,
-  Zap,
-  Code,
-  Database,
-  Link,
-  Cloud,
-  MessageSquare,
-  Briefcase,
-  Clipboard,
-  Cpu,
-  Server,
-  Globe,
-  Wrench,
-  Brain,
   Quote,
   ChevronLeft,
   ChevronRight,
-  Dumbbell,
-  Activity,
-  Calendar,
-  TrendingUp,
-  Rocket,
+  Trophy,
+  Award,
+  PlayCircle,
+  ArrowRight,
 } from "lucide-react"
 
+import LightsOut from "./components/LightsOut"
+import TelemetryGauges from "./components/TelemetryGauges"
+import RaceTimeline from "./components/RaceTimeline"
+import PitCrewChat from "./components/PitCrewChat"
+import {
+  profile,
+  socials,
+  projects,
+  projectFilters,
+  skillCategories,
+  certifications,
+  demoVideos,
+  testimonials,
+} from "./data/portfolio"
+
+const NAV = [
+  { id: "stats", label: "Telemetry" },
+  { id: "about", label: "About" },
+  { id: "skills", label: "Skills" },
+  { id: "projects", label: "Projects" },
+  { id: "journey", label: "Journey" },
+  { id: "certs", label: "Trophies" },
+  { id: "videos", label: "Demos" },
+  { id: "contact", label: "Contact" },
+]
+
 export default function Portfolio() {
-  const backgroundImage = process.env.NEXT_PUBLIC_BACKGROUND_IMAGE || '/landing-page-image.jpg';
+  const backgroundImage =
+    process.env.NEXT_PUBLIC_BACKGROUND_IMAGE || "/landing-page-image.jpg"
 
-  const [step, setStep] = useState(0);
-  const [liveUrl, setLiveUrl] = useState<string | null>(null);
-
-  const [activeSection, setActiveSection] = useState("hero")
-  const [githubProjects, setGithubProjects] = useState([])
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
   const [scrollY, setScrollY] = useState(0)
-  const [lapCounter, setLapCounter] = useState(0)
-  const [codingStreak, setCodingStreak] = useState(127)
-  const [githubStats, setGithubStats] = useState({
-    commits: 0,
-    pullRequests: 0,
-    issues: 0,
-    contributions: 0,
-  })
-  const [typedText, setTypedText] = useState("")
-  const [isTyping, setIsTyping] = useState(true)
-  const heroRef = useRef(null)
-  const sectionsRef = useRef([])
+  const [typed, setTyped] = useState("")
+  const [activeFilter, setActiveFilter] = useState<string>("All")
+  const [currentT, setCurrentT] = useState(0)
 
-  const fullText = "I'm Steve Ralephenya, a software engineer building high-performance solutions with precision and speed."
+  const fullText = profile.tagline
 
+  // Typewriter tagline
   useEffect(() => {
-    if (isTyping && typedText.length < fullText.length) {
-      const timer = setTimeout(() => {
-        setTypedText(fullText.slice(0, typedText.length + 1))
-      }, 50)
-      return () => clearTimeout(timer)
-    } else if (typedText.length === fullText.length) {
-      setIsTyping(false)
+    if (typed.length < fullText.length) {
+      const t = setTimeout(() => setTyped(fullText.slice(0, typed.length + 1)), 35)
+      return () => clearTimeout(t)
     }
-  }, [typedText, isTyping, fullText])
+  }, [typed, fullText])
 
+  // Parallax + nav RPM
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const stats = await getGitHubStats();
-
-        setCodingStreak(stats.currentStreak);
-        
-        setGithubStats({
-          commits: stats.totalCommits,
-          pullRequests: stats.totalPullRequests,
-          issues: 0,
-          contributions: stats.totalContributionDays,
-          
-        });
-      } catch (error) {
-        console.error('Failed to fetch GitHub stats', error);
-      }
-    }
-
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      setScrollY(currentScrollY)
-
-      const documentHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollProgress = currentScrollY / documentHeight;
-
-      if(scrollProgress <= 0) {
-        setLapCounter(0);
-        return;
-      }
-
-      setLapCounter(Math.floor(scrollProgress * 10))
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+    const onScroll = () => setScrollY(window.scrollY)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  // Scroll reveal
   useEffect(() => {
-    const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("animate-in")
-            }
-          })
-        },
-        { threshold: 0.1 },
+    const obs = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => e.isIntersecting && e.target.classList.add("animate-in")),
+      { threshold: 0.12 },
     )
-
-    sectionsRef.current.forEach((section) => {
-      if (section) observer.observe(section)
-    })
-
-    return () => observer.disconnect()
+    document.querySelectorAll("[data-reveal]").forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
   }, [])
 
+  // Testimonial rotation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
-    return () => clearTimeout(timer)
+    const i = setInterval(() => setCurrentT((p) => (p + 1) % testimonials.length), 6000)
+    return () => clearInterval(i)
   }, [])
 
+  // "rr" easter egg — rev the engine
   useEffect(() => {
-    let keySequence = ""
-    const handleKeyPress = (e: KeyboardEvent) => {
-      keySequence += e.key.toLowerCase()
-      if (keySequence.includes("rr")) {
+    let seq = ""
+    const onKey = (e: KeyboardEvent) => {
+      seq = (seq + e.key.toLowerCase()).slice(-6)
+      if (seq.includes("rr")) {
         document.body.classList.add("rev-animation")
-        console.log("[v0] 🏍️ VROOOOM! Engine revving!")
-        setTimeout(() => {
-          document.body.classList.remove("rev-animation")
-        }, 2000)
-        keySequence = ""
-      }
-      if (keySequence.length > 10) {
-        keySequence = keySequence.slice(-10)
+        setTimeout(() => document.body.classList.remove("rev-animation"), 2000)
+        seq = ""
       }
     }
-    window.addEventListener("keydown", handleKeyPress)
-    return () => window.removeEventListener("keydown", handleKeyPress)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
   }, [])
 
-  const playHoverSound = () => {
-    console.log("[v0] 🔧 Gear shift sound!")
-  }
+  const filtered =
+    activeFilter === "All"
+      ? projects
+      : projects.filter((p) => p.category === activeFilter)
 
-  const playHoverSoundAndSendEmail = () => {
-    console.log("[v0] 🔧 Gear shift sound!")
-  }
+  const featuredCerts = certifications.filter((c) => c.tier === "gold" || c.tier === "silver")
+  const anthropicCerts = certifications.filter((c) => c.tier === "anthropic")
 
-  const mockProjects = [
-    {
-      name: "IdentityServer4 Example",
-      description: "A robust authentication and authorization solution built with IdentityServer4 and ASP.NET Core, demonstrating secure user management, OAuth 2.0, and API protection.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["csharp", "aspnet", "identityserver4", "security", "authentication"],
-      html_url: "https://github.com/Ralephenya/IdentityServer4Example",
-      category: "Web",
-      language: "C#",
-      updated_at: "2024-01-15",
-    },
-    {
-      name: "PerfectPay.App",
-      description: "A cross-platform mobile application developed with .NET MAUI, showcasing expertise in mobile UI/UX, data persistence, and C# development.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["dotnet-maui", "csharp", "mobile", "xamarin", "app"],
-      html_url: "https://github.com/Ralephenya/PerfectPay.App",
-      category: "Mobile",
-      language: "C#",
-      updated_at: "2024-01-10",
-    },
-    {
-      name: "CodeQuotes",
-      description: "A mobile application built with .NET MAUI that serves daily coding quotes, demonstrating client-side data handling and a clean, modern user interface.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["dotnet-maui", "csharp", "mobile", "api", "quotes"],
-      html_url: "https://github.com/Ralephenya/CodeQuotes",
-      category: "Mobile",
-      language: "C#",
-      updated_at: "2024-01-09",
-    },
-    {
-      name: "BreakfastMenu.App",
-      description: "A full-stack application for managing a breakfast menu, highlighting skills in a web framework (like ASP.NET Core) and front-end development with .NET.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["csharp", "dotnet", "full-stack", "web-dev"],
-      html_url: "https://github.com/Ralephenya/BreakfastMenu.App",
-      category: "Web",
-      language: "C#",
-      updated_at: "2024-01-12",
-    },
-    {
-      name: "MauiWeather",
-      description: "A weather application developed with .NET MAUI, showcasing integration with external APIs and dynamic UI updates based on real-time data.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["dotnet-maui", "csharp", "mobile", "api"],
-      html_url: "https://github.com/Ralephenya/MauiWeather",
-      category: "Mobile",
-      language: "C#",
-      updated_at: "2024-01-05",
-    },
-    {
-      name: "Custom .NET Template",
-      description: "A personal .NET template project demonstrating an understanding of framework configuration and the ability to customize existing templates to fit a specific style and architecture.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["csharp", "dotnet", "templates", "configuration"],
-      html_url: "https://github.com/Ralephenya/NET-Template",
-      category: "DevOps",
-      language: "C#",
-      updated_at: "2024-01-14",
-    },
-    {
-      name: "Discovery System Integration",
-      description: "Contributed to the successful integration of Discovery's insurance system via API to enable real-time data exchange and enhance client services.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["api-integration", "insurance-tech", "csharp", "rest-api"],
-      html_url: "#",
-      category: "APIs & Integrations",
-      language: "C#",
-      updated_at: "2025-02-01",
-    },
-    {
-      name: "Twilio WhatsApp Messaging",
-      description: "Developed and integrated Twilio for WhatsApp messaging, enabling insurance advisors to manage customer communication and assign messages within the CRM system.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["twilio", "whatsapp", "messaging", "crm", "csharp"],
-      html_url: "#",
-      category: "APIs & Integrations",
-      language: "C#",
-      updated_at: "2025-03-01",
-    },
-    {
-      name: "OrderEazi ERP & Inventory System",
-      description: "Enhanced an order and inventory management system by integrating with ERP solutions like Sage and Xero, optimizing order fulfillment and improving customer-facing features.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["erp", "inventory-management", "csharp", "aspnet", "rest-api"],
-      html_url: "#",
-      category: "Web",
-      language: "C#",
-      updated_at: "2024-04-01",
-    },
-    {
-      name: "Meta WhatsApp Integration",
-      description: "Developed a dynamic and generic template integration with Meta's WhatsApp API, allowing the system to fill in values and send seamless messages based on pre-built templates.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["meta-api", "whatsapp", "messaging", "api-integration"],
-      html_url: "#",
-      category: "APIs & Integrations",
-      language: "C#",
-      updated_at: "2024-03-01",
-    },
-    {
-      name: "ShipLogic & Skynet Integrations",
-      description: "Worked with courier services like ShipLogic and Skynet to provide accurate shipment fees and develop a required-boxes algorithm for shipments, using API integration and JSON/XML.",
-      stargazers_count: null,
-      forks_count: null,
-      topics: ["api-integration", "logistics", "algorithm", "json", "xml"],
-      html_url: "#",
-      category: "DevOps",
-      language: "C#",
-      updated_at: "2024-01-01",
-    },
-  ];
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <PitCrewChat />
 
-  const skillCategories = {
-    "Languages & Frameworks": [
-      { name: "C# / ASP.NET", level: 85, icon: Code },
-      { name: "Angular", level: 65, icon: Globe },
-      { name: "TypeScript", level: 60, icon: Code },
-      { name: "React", level: 55, icon: Globe },
-      { name: "Vue.js", level: 65, icon: Globe },
-      { name: "Node.js", level: 70, icon: Server },
-      { name: "JavaScript", level: 78, icon: Code },
-      { name: "HTML/CSS", level: 85, icon: Globe },
-      { name: "jQuery", level: 80, icon: Code },
-    ],
-    "APIs & Integrations": [
-      { name: "REST APIs", level: 75, icon: Link },
-      { name: "SOAP / XML", level: 55, icon: Link },
-      { name: "JSON", level: 80, icon: Link },
-      { name: "Twilio (WhatsApp)", level: 70, icon: MessageSquare },
-      { name: "Meta WhatsApp (Templates)", level: 75, icon: MessageSquare },
-      { name: "ERP Integrations (Sage, Xero, Palladium)", level: 65, icon: Briefcase },
-    ],
-    "Cloud & DevOps": [
-      { name: "AWS", level: 60, icon: Cloud },
-      { name: "Azure", level: 40, icon: Cloud },
-      { name: "Docker", level: 70, icon: Cpu },
-      { name: "CI/CD", level: 55, icon: Wrench },
-      { name: "Git / Bitbucket", level: 78, icon: Code },
-      { name: "Jira / Confluence", level: 75, icon: Wrench },
-      { name: "IBM Cloud", level: 45, icon: Cloud },
-    ],
-    Databases: [
-      { name: "SQL Server", level: 85, icon: Database },
-      { name: "MySQL", level: 75, icon: Database },
-      { name: "Milvus (Vector DB)", level: 30, icon: Database },
-    ],
-    "AI Integration": [
-      { name: "Python (RAG)", level: 45, icon: Brain },
-      { name: "NLP", level: 40, icon: Brain },
-      { name: "ML.NET / TorchSharp", level: 35, icon: Brain },
-    ],
-    Practices: [
-      { name: "Agile (Scrum)", level: 70, icon: Wrench },
-      { name: "Test-Driven Development (TDD)", level: 75, icon: Wrench },
-      { name: "Project Management", level: 65, icon: Clipboard },
-    ],
-  }
+      {/* ===== NAV ===== */}
+      <nav className="fixed inset-x-0 top-0 z-40 border-b border-gray-800/80 bg-black/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          <a href="#hero" className="font-display text-lg font-black tracking-tight">
+            <span className="text-white">SR</span>
+            <span className="text-red-500">.</span>
+          </a>
+          <div className="hidden items-center gap-6 lg:flex">
+            {NAV.map((n) => (
+              <a
+                key={n.id}
+                href={`#${n.id}`}
+                className="text-sm text-gray-400 transition-colors hover:text-red-400"
+              >
+                {n.label}
+              </a>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden font-mono text-xs text-gray-500 sm:inline">
+              RPM <span className="text-red-500">{Math.min(Math.floor(scrollY / 8), 14000).toLocaleString()}</span>
+            </span>
+            <a href="#contact">
+              <Button
+                size="sm"
+                className="bg-green-600 text-white hover:bg-green-700 font-semibold shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+              >
+                Hire Me
+              </Button>
+            </a>
+          </div>
+        </div>
+      </nav>
 
-  const journey = [
-    {
-      year: "2022",
-      title: "Software Developer",
-      company: "Livex Software",
-      location: "Pretoria, South Africa",
-      description: "Contributed to software projects for inventory management, student administration, and client billing systems using ASP.NET Core and SQL.",
-      coordinates: [-25.8241128, 28.3393786],
-    },
-    {
-      year: "2023",
-      title: "Junior Full Stack Developer",
-      company: "Warp Development",
-      location: "Pretoria, South Africa",
-      description: "Started as a junior - Enhanced OrderEazi's order and inventory management systems, improving customer-facing features and streamlining internal processes.",
-      coordinates: [-25.7479, 28.2293],
-    },
-    {
-      year: "2024",
-      title: "Intermediate Full Stack Developer",
-      company: "Warp Development",
-      location: "Pretoria, South Africa",
-      description: "Worked on the OrderEazi system by integrating it with ERP systems like Sage and Xero. Developed a dynamic template integration with Meta's WhatsApp API. Also, worked with courier services like ShipLogic and Skynet to provide accurate shipment fees and consignment.",
-      coordinates: [-25.7479, 28.2293],
-    },
-    {
-      year: "2025",
-      title: "Full Stack Developer",
-      company: "Bsure Insurance Advisors",
-      location: "Johannesburg, South Africa",
-      description: "Integrated Discovery's insurance system via API and developed a Twilio for WhatsApp messaging solution and built in house software",
-      coordinates: [-25.7479, 28.2293],
-    },
-  ];
+      {/* ===== HERO ===== */}
+      <section
+        id="hero"
+        className="relative flex min-h-screen items-center justify-center overflow-hidden"
+      >
+        <div className="particles-bg" />
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.45)), url('${backgroundImage}')`,
+            transform: `translateY(${scrollY * 0.25}px)`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/60 to-red-950/50" />
+        <div className="carbon-fiber absolute inset-0 opacity-[0.06]" />
 
-  const testimonials = [
-    {
-      name: "Riaan Grobler",
-      role: "Mentor/Senior Developer at Warp Development",
-      avatar: "/professional-man-avatar.png",
-      quote: "When Steve first joined Warp Development, I had my doubts. But he quickly proved me wrong. He's incredibly dedicated, always the first one in and the last to leave. Steve consistently delivers high-quality work, has a fantastic attitude, and is always eager to take on new challenges. He's a true team player and a valuable asset.",
-    },
-    {
-      name: "Gareth Short",
-      role: "Project Manager & Database Analytics at Bsure Insurance Advisors",
-      avatar: "/professional-man-avatar.png",
-      quote: "Steve has a rare talent. He's incredibly focused and driven, yet he always makes time to help others. He's a fantastic collaborator, always planning ahead and valuing everyone's input. His punctuality, organization, and emotional intelligence make him a great team player. He's become the go-to person for the team, and his collaborative approach is a breath of fresh air.",
-    },
-  ];
+        <div className="relative z-20 mx-auto max-w-5xl px-6 pt-28 text-center">
+          <div className="mb-6 flex justify-center">
+            <LightsOut />
+          </div>
 
-  const [activeFilter, setActiveFilter] = useState("All")
+          <p className="mb-3 font-mono text-sm uppercase tracking-[0.3em] text-red-500">
+            {profile.location}
+          </p>
+          <h1 className="mb-4 font-display text-5xl font-black leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
+            <span className="block hero-gradient-text">{profile.firstName.toUpperCase()}</span>
+            <span className="block hero-red-text">RALEPHENYA</span>
+          </h1>
+          <p className="mx-auto mb-6 max-w-3xl font-display text-base font-bold uppercase tracking-wide text-gray-200 md:text-xl">
+            {profile.title}
+          </p>
+          <p className="mx-auto mb-10 min-h-[3.5rem] max-w-2xl text-base text-gray-300 md:text-lg">
+            {typed}
+            <span className="animate-pulse text-red-500">|</span>
+          </p>
 
-  const filteredProjects = activeFilter === "All" ? mockProjects : mockProjects.filter((project) => project.category === activeFilter)
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a href="#projects">
+              <Button
+                size="lg"
+                className="hero-button-primary px-8 py-6 text-lg text-white"
+              >
+                View My Work <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </a>
+            <a href={profile.resume} download>
+              <Button
+                size="lg"
+                variant="outline"
+                className="hero-button-secondary px-8 py-6 text-lg text-blue-300"
+              >
+                <Download className="mr-2 h-5 w-5" /> Download CV
+              </Button>
+            </a>
+          </div>
 
-  useEffect(() => {
-    setGithubProjects(mockProjects)
-  }, [])
+          <div className="mt-10 flex items-center justify-center gap-5">
+            <SocialIcon href={socials.github} label="GitHub"><Github className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.linkedin} label="LinkedIn"><Linkedin className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.youtube} label="YouTube"><Youtube className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.email} label="Email"><Mail className="h-5 w-5" /></SocialIcon>
+          </div>
+        </div>
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce text-gray-500">
+          <span className="font-mono text-xs uppercase tracking-widest">Scroll to launch</span>
+        </div>
+      </section>
 
-  if (isLoading) {
-    return (
-        <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-          <div className="particles-bg"></div>
-          <div className="text-center">
-            <div className="tachometer mb-8">
-              <div className="tach-needle"></div>
-              <div className="tach-numbers">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <span key={num} className="tach-number" style={{ transform: `rotate(${num * 18 - 90}deg)` }}>
-                  {num}
-                </span>
-                ))}
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-white mb-4">STARTING ENGINE...</div>
-            <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-red-600 to-blue-500 rounded-full loading-bar"></div>
+      {/* ===== TELEMETRY (GitHub stats) ===== */}
+      <Section id="stats" title="Live Telemetry" subtitle="Real GitHub activity, on the dials">
+        <TelemetryGauges />
+      </Section>
+
+      {/* ===== ABOUT ===== */}
+      <Section id="about" title="The Driver" subtitle="Who's behind the visor" bg="muted">
+        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.4fr]">
+          <div className="relative mx-auto max-w-xs">
+            <div className="absolute -inset-2 rounded-2xl bg-gradient-to-br from-red-600/40 to-blue-600/40 blur-lg" />
+            <img
+              src="/steve.JPG"
+              alt={profile.name}
+              className="relative w-full rounded-2xl border border-gray-800 object-cover"
+            />
+          </div>
+          <div>
+            <p className="text-lg leading-relaxed text-gray-300">{profile.about}</p>
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Stat value="4+" label="Years" />
+              <Stat value="7" label="Certs" />
+              <Stat value="4" label="Companies" />
+              <Stat value="DVA-C02" label="AWS" />
             </div>
           </div>
         </div>
-    )
+      </Section>
+
+      {/* ===== SKILLS ===== */}
+      <Section id="skills" title="Pit-Wall Skills" subtitle="Telemetry across the stack">
+        <div className="space-y-10">
+          {Object.entries(skillCategories).map(([cat, skills]) => (
+            <div key={cat}>
+              <h3 className="mb-5 font-display text-xl font-bold text-red-500">{cat}</h3>
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {skills.map((skill) => {
+                  const Icon = skill.icon
+                  return (
+                    <div
+                      key={skill.name}
+                      className="skill-card space-y-3 rounded-lg border border-gray-800 bg-black/50 p-4 transition-all hover:border-red-500/50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2.5 font-semibold text-white">
+                          <Icon className="h-5 w-5 text-blue-400" />
+                          {skill.name}
+                        </span>
+                        <span className="font-mono text-sm text-gray-400">{skill.level}%</span>
+                      </div>
+                      <div className="rev-gauge">
+                        <div className="rev-fill" style={{ width: `${skill.level}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ===== PROJECTS ===== */}
+      <Section id="projects" title="The Grid" subtitle="Selected work, sanitized for the public" bg="muted">
+        <div className="mb-10 flex flex-wrap justify-center gap-3">
+          {projectFilters.map((f) => (
+            <Badge
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`cursor-pointer px-4 py-2 text-sm transition-all ${
+                activeFilter === f
+                  ? "border-red-600 bg-red-600 text-white"
+                  : "border-gray-600 bg-transparent text-gray-300 hover:border-red-500 hover:text-red-400"
+              }`}
+            >
+              {f}
+            </Badge>
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <Card
+              key={p.name}
+              className="project-card group border-gray-800 bg-gradient-to-br from-gray-900 to-black transition-all hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]"
+            >
+              <CardContent className="p-6">
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <h3 className="font-display text-lg font-bold text-white">{p.name}</h3>
+                  {p.url !== "#" ? (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-5 w-5 text-gray-500 transition-colors group-hover:text-blue-400" />
+                    </a>
+                  ) : (
+                    <Badge className="border-gray-700 bg-gray-800 text-[10px] text-gray-400">
+                      {p.category}
+                    </Badge>
+                  )}
+                </div>
+                <p className="mb-4 text-sm text-gray-400">{p.blurb}</p>
+                <div className="flex flex-wrap gap-2">
+                  {p.stack.map((s) => (
+                    <span
+                      key={s}
+                      className="rounded border border-gray-700 bg-gray-800/60 px-2 py-0.5 text-xs text-gray-300"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      {/* ===== JOURNEY (race lap) ===== */}
+      <Section id="journey" title="The Lap" subtitle="Four corners, one career line">
+        <RaceTimeline />
+      </Section>
+
+      {/* ===== CERTIFICATIONS (trophy wall) ===== */}
+      <Section id="certs" title="Trophy Wall" subtitle="Silverware on the shelf" bg="muted">
+        <div className="mb-8 grid gap-5 sm:grid-cols-2">
+          {featuredCerts.map((c) => (
+            <div
+              key={c.name}
+              className="trophy-card flex items-center gap-4 rounded-xl border border-yellow-600/30 bg-gradient-to-br from-yellow-950/30 to-black p-5"
+            >
+              <Trophy className="h-10 w-10 shrink-0 text-yellow-500" />
+              <div>
+                <div className="font-display font-bold text-white">{c.name}</div>
+                <div className="text-sm text-gray-400">
+                  {c.issuer} · {c.date}
+                  {"code" in c && (c as any).code ? ` · ${(c as any).code}` : ""}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <h3 className="mb-4 text-center font-mono text-sm uppercase tracking-widest text-red-500">
+          6× Anthropic Certifications
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {anthropicCerts.map((c) => (
+            <div
+              key={c.name}
+              className="trophy-card flex items-center gap-3 rounded-lg border border-gray-800 bg-black/50 p-4 transition-all hover:border-red-500/50"
+            >
+              <Award className="h-7 w-7 shrink-0 text-red-400" />
+              <div>
+                <div className="font-semibold text-white">{c.name}</div>
+                <div className="text-xs text-gray-500">{c.issuer} · {c.date}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ===== DEMO VIDEOS ===== */}
+      <Section id="videos" title="Onboard Camera" subtitle="AI & MCP demos, straight from the cockpit">
+        <div className="grid gap-6 md:grid-cols-3">
+          {demoVideos.map((v, i) => (
+            <Card key={i} className="overflow-hidden border-gray-800 bg-gray-900">
+              <div className="relative aspect-video w-full bg-black">
+                {v.id ? (
+                  <iframe
+                    className="absolute inset-0 h-full w-full"
+                    src={`https://www.youtube.com/embed/${v.id}`}
+                    title={v.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <a
+                    href={socials.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-500 transition-colors hover:text-red-400"
+                  >
+                    <PlayCircle className="h-12 w-12" />
+                    <span className="font-mono text-xs uppercase tracking-widest">Recording soon</span>
+                  </a>
+                )}
+              </div>
+              <CardContent className="p-4">
+                <h3 className="font-display font-bold text-white">{v.title}</h3>
+                <p className="mt-1 text-sm text-gray-400">{v.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <a href={socials.youtube} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
+              <Youtube className="mr-2 h-5 w-5" /> Visit @neutral3731
+            </Button>
+          </a>
+        </div>
+      </Section>
+
+      {/* ===== TESTIMONIALS ===== */}
+      <Section id="testimonials" title="Race Engineers" subtitle="What the crew says" bg="muted">
+        <div className="mx-auto max-w-3xl">
+          <Card className="border-gray-700 bg-gradient-to-br from-gray-900 to-gray-800 testimonial-card">
+            <CardContent className="p-8 text-center">
+              <Quote className="mx-auto mb-6 h-10 w-10 text-red-500" />
+              <blockquote className="mb-6 text-lg text-gray-200 md:text-xl">
+                "{testimonials[currentT].quote}"
+              </blockquote>
+              <div className="font-semibold text-white">{testimonials[currentT].name}</div>
+              <div className="text-sm text-gray-400">{testimonials[currentT].role}</div>
+            </CardContent>
+          </Card>
+          <div className="mt-6 flex justify-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-gray-600 bg-transparent text-gray-300 hover:border-red-500 hover:text-red-400"
+              onClick={() => setCurrentT((p) => (p - 1 + testimonials.length) % testimonials.length)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-gray-600 bg-transparent text-gray-300 hover:border-blue-500 hover:text-blue-400"
+              onClick={() => setCurrentT((p) => (p + 1) % testimonials.length)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </Section>
+
+      {/* ===== CONTACT ===== */}
+      <ContactSection />
+
+      {/* ===== FOOTER ===== */}
+      <footer className="border-t border-gray-800 bg-black px-6 py-12">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
+          <div className="flex items-center gap-4">
+            <SocialIcon href={socials.github} label="GitHub"><Github className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.linkedin} label="LinkedIn"><Linkedin className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.youtube} label="YouTube"><Youtube className="h-5 w-5" /></SocialIcon>
+            <SocialIcon href={socials.email} label="Email"><Mail className="h-5 w-5" /></SocialIcon>
+            <a href={profile.resume} download className="ml-2">
+              <Button size="sm" variant="outline" className="border-gray-700 text-gray-300 hover:border-red-500 hover:text-red-400">
+                <Download className="mr-2 h-4 w-4" /> CV
+              </Button>
+            </a>
+          </div>
+          <p className="text-center font-mono text-sm text-gray-500">
+            © {new Date().getFullYear()} {profile.name} — Engineered with precision &amp; speed
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+/* ---------- small presentational helpers ---------- */
+
+function Section({
+  id,
+  title,
+  subtitle,
+  children,
+  bg,
+}: {
+  id: string
+  title: string
+  subtitle?: string
+  children: React.ReactNode
+  bg?: "muted"
+}) {
+  return (
+    <section
+      id={id}
+      data-reveal
+      className={`px-6 py-20 ${bg === "muted" ? "bg-gray-950" : "bg-black"}`}
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <h2 className="font-display text-4xl font-black text-white md:text-5xl">{title}</h2>
+          {subtitle && <p className="mt-3 text-gray-400">{subtitle}</p>}
+        </div>
+        {children}
+      </div>
+    </section>
+  )
+}
+
+function SocialIcon({
+  href,
+  label,
+  children,
+}: {
+  href: string
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-700 text-gray-400 transition-all hover:scale-110 hover:border-red-500 hover:text-red-400"
+    >
+      {children}
+    </a>
+  )
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-lg border border-gray-800 bg-black/50 p-4 text-center">
+      <div className="font-display text-2xl font-bold text-red-500">{value}</div>
+      <div className="text-xs uppercase tracking-wider text-gray-400">{label}</div>
+    </div>
+  )
+}
+
+function ContactSection() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [message, setMessage] = useState("")
+
+  const send = (e: React.FormEvent) => {
+    e.preventDefault()
+    const subject = encodeURIComponent(`Portfolio enquiry from ${name || "a visitor"}`)
+    const body = encodeURIComponent(`${message}\n\n— ${name}${email ? ` (${email})` : ""}`)
+    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`
   }
 
   return (
-      <div className="min-h-screen bg-black text-white">
-        <nav className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b border-gray-800">
-          <div className="max-w-6xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="dashboard-indicator">
-                  <div className="text-xs text-gray-400">LAP</div>
-                  <div className="text-lg font-mono text-red-500">{lapCounter}/10</div>
-                </div>
-                <div className="dashboard-indicator">
-                  <div className="text-xs text-gray-400">STREAK</div>
-                  <div className="text-lg font-mono text-blue-400">{codingStreak}d</div>
-                </div>
+    <section id="contact" data-reveal className="bg-black px-6 py-20">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-10 text-center">
+          <h2 className="font-display text-4xl font-black text-white md:text-5xl">Lights Out</h2>
+          <p className="mt-3 text-gray-400">
+            Open for {profile.availableFor}. Let's talk.
+          </p>
+        </div>
+        <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black contact-card">
+          <CardContent className="p-8">
+            <form onSubmit={send} className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Input
+                  required
+                  placeholder="Your Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="border-gray-700 bg-gray-800 text-white placeholder-gray-400 focus:border-red-500"
+                />
+                <Input
+                  type="email"
+                  placeholder="Your Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="border-gray-700 bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500"
+                />
               </div>
-              <div className="flex items-center gap-6">
-                <div className="text-sm text-gray-400">
-                  RPM: <span className="text-red-500 font-mono">{Math.floor(scrollY / 10)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          <div className="particles-bg"></div>
-          <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url('${backgroundImage}')`,
-                transform: `translateY(${scrollY * 0.3}px)`,
-              }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/70 to-red-900/50"></div>
-          <div className="absolute inset-0 carbon-fiber opacity-5"></div>
-          <div className="speed-blur-overlay"></div>
-
-          <div className="relative z-20 text-center max-w-6xl mx-auto px-6 pt-32 md:pt-24">
-            <h1 className="font-bold text-5xl md:text-7xl lg:text-8xl mb-8 text-white drop-shadow-2xl tracking-tight animate-fade-in leading-tight">
-            <span className="block bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
-              Engineering at
-            </span>
-              <span className="block bg-gradient-to-r from-red-500 via-red-400 to-red-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(239,68,68,0.8)] mt-4">
-              Full Throttle
-            </span>
-            </h1>
-            <p className="text-lg md:text-2xl text-gray-200 mb-12 drop-shadow-lg min-h-[3rem] font-medium">
-              {typedText}
-              <span className="animate-pulse text-red-500">|</span>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <a href="#portfolio">
-                <Button
-                    size="lg"
-                    className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-4 neon-glow-red transition-all duration-300 hover:scale-105 shadow-lg shadow-red-500/25"
-                    onMouseEnter={playHoverSound}
-                >
-                  View My Work
-                </Button>
-              </a>
-              <a href="#contact">
-                <Button
-                    variant="outline"
-                    size="lg"
-                    className="text-lg px-8 py-4 border-2 border-blue-500 text-blue-400 hover:bg-blue-500/20 bg-black/50 neon-glow-blue transition-all duration-300 hover:scale-105 shadow-lg shadow-blue-500/25"
-                    onMouseEnter={playHoverSound}
-                >
-                  Contact Me
-                </Button>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[0] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-16 text-white">Live GitHub Stats</h2>
-            <div className="grid md:grid-cols-4 gap-6 mb-16">
-              <Card className="bg-black border-gray-800 hover:border-red-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20">
-                <CardContent className="p-6 text-center">
-                  <Activity className="h-8 w-8 text-red-500 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-2">{githubStats.commits.toLocaleString()}</div>
-                  <div className="text-sm text-gray-400">Total Commits</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-black border-gray-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
-                <CardContent className="p-6 text-center">
-                  <GitFork className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-2">{githubStats.pullRequests}</div>
-                  <div className="text-sm text-gray-400">Pull Requests</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-black border-gray-800 hover:border-red-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20">
-                <CardContent className="p-6 text-center">
-                  <Calendar className="h-8 w-8 text-red-500 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-2">{codingStreak}</div>
-                  <div className="text-sm text-gray-400">Day Streak</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-black border-gray-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
-                <CardContent className="p-6 text-center">
-                  <TrendingUp className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-2">{githubStats.contributions.toLocaleString()}</div>
-                  <div className="text-sm text-gray-400">Contributions</div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* ============= CI/CD SECTION ============= */}
-        <section className="py-20 px-6 bg-black relative overflow-hidden">
-          {/* Particle Background */}
-          <div className="particles-bg opacity-30"></div>
-
-          {/* Racing Stripes */}
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50"></div>
-          <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-
-          <div className="max-w-4xl mx-auto text-center relative z-10">
-            {/* Section Header */}
-            <div className="mb-12">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Rocket className="h-12 w-12 text-red-500 animate-pulse" />
-                <h2 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-500">
-                  Interactive CI/CD Pipeline
-                </h2>
-                <Rocket className="h-12 w-12 text-blue-500 animate-pulse" />
-              </div>
-              <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
-                Submit a picture URL and watch it get deployed through our simulated CI/CD pipeline in real-time.
-                Experience the thrill of a full deployment cycle at S1000RR speeds!
-              </p>
-            </div>
-
-            {/* Info Cards */}
-            <div className="grid md:grid-cols-2 gap-4 mb-12 max-w-3xl mx-auto">
-              <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 border border-red-500/30 rounded-lg p-4 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="text-red-400 font-bold text-sm mb-1">Why Picture URL?</h3>
-                    <p className="text-gray-400 text-xs">We need a valid image URL to generate your live preview and demonstrate the deployment process.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-4 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <h3 className="text-blue-400 font-bold text-sm mb-1">Why Email?</h3>
-                    <p className="text-gray-400 text-xs">Get notified when your preview is ready and help us prevent spam submissions.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Submission Form */}
-            <div className="mb-8">
-              <SubmissionForm
-                  onSuccess={(url) => setLiveUrl(url)}
-                  onStepChange={setStep}
+              <Textarea
+                required
+                rows={5}
+                placeholder="Your Message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="border-gray-700 bg-gray-800 text-white placeholder-gray-400 focus:border-red-500"
               />
-            </div>
-
-            {/* Progress Tracker */}
-            <ProgressTracker step={step} />
-
-            {/* Success Message */}
-            {liveUrl && (
-                <div className="mt-12 p-6 bg-gradient-to-r from-green-900/40 to-green-800/30 border-2 border-green-500 rounded-lg shadow-2xl shadow-green-500/30 animate-in">
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <h3 className="text-2xl font-bold text-green-400">Deployment Successful!</h3>
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  </div>
-                  <p className="text-gray-300 mb-4">Your ephemeral environment is live and ready to view</p>
-                  <a
-                      href={liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-green-500/30"
-                  >
-                    <ExternalLink className="h-5 w-5" />
-                    View Live Preview
-                    <ExternalLink className="h-5 w-5" />
-                  </a>
-                </div>
-            )}
-          </div>
-        </section>
-        {/* ============= END CI/CD SECTION ============= */}
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[1] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-4 text-white">Tech Stack & Skills</h2>
-            <p className="text-center text-gray-400 mb-16 text-lg">Performance metrics like motorcycle dials</p>
-
-            {Object.entries(skillCategories).map(([category, skills]) => (
-                <div key={category} className="mb-12">
-                  <h3 className="text-2xl font-bold mb-6 text-red-500">{category}</h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {skills.map((skill, index) => {
-                      const Icon = skill.icon
-                      return (
-                          <div
-                              key={index}
-                              className="space-y-3 p-4 rounded-lg bg-black/50 border border-gray-800 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300 skill-card"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Icon className="h-6 w-6 text-blue-400" />
-                                <span className="font-semibold text-lg text-white">{skill.name}</span>
-                              </div>
-                              <span className="text-sm text-gray-400 font-mono">{skill.level}%</span>
-                            </div>
-                            <div className="rev-gauge">
-                              <div className="rev-fill animated-fill" style={{ width: `${skill.level}%` }}></div>
-                            </div>
-                          </div>
-                      )
-                    })}
-                  </div>
-                </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="portfolio" className="py-20 px-6 bg-black" ref={(el) => (sectionsRef.current[2] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-4 text-white">Portfolio</h2>
-            <p className="text-center text-gray-400 mb-12 text-lg">Dynamic GitHub projects with live filtering</p>
-
-            <div className="flex justify-center mb-12">
-              <div className="flex gap-3 flex-wrap justify-center">
-                {["All", "Web", "Cloud", "AI"].map((filter) => (
-                    <Badge
-                        key={filter}
-                        variant={activeFilter === filter ? "default" : "outline"}
-                        className={`cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105 ${
-                            activeFilter === filter
-                                ? "bg-red-600 text-white border-red-600 neon-glow-red"
-                                : "border-gray-600 text-gray-300 hover:border-red-500 hover:text-red-400"
-                        }`}
-                        onClick={() => setActiveFilter(filter)}
-                    >
-                      {filter}
-                    </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project, index) => (
-                  <Card
-                      key={index}
-                      className="group hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300 hover:-translate-y-2 bg-gray-900 border-gray-800 hover:border-red-500/50 project-card"
-                  >
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span className="text-lg text-white">{project.name}</span>
-                        <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
-                      </CardTitle>
-                      <CardDescription className="text-base text-gray-300">{project.description}</CardDescription>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <div
-                            className={`w-3 h-3 rounded-full ${
-                                project.language === "C#"
-                                    ? "bg-purple-500"
-                                    : project.language === "JavaScript"
-                                        ? "bg-yellow-500"
-                                        : project.language === "TypeScript"
-                                            ? "bg-blue-500"
-                                            : project.language === "Python"
-                                                ? "bg-green-500"
-                                                : project.language === "Go"
-                                                    ? "bg-cyan-500"
-                                                    : "bg-gray-500"
-                            }`}
-                        ></div>
-                        <span>{project.language}</span>
-                        <span className="ml-auto">Updated {new Date(project.updated_at).toLocaleDateString()}</span>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-6 mb-4">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm font-mono text-gray-300">{project.stargazers_count}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <GitFork className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm font-mono text-gray-300">{project.forks_count}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {project.topics.map((topic, topicIndex) => (
-                            <Badge key={topicIndex} className="text-xs bg-gray-800 text-gray-300 border-gray-700">
-                              {topic}
-                            </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[3] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-4 text-white">My Journey</h2>
-            <p className="text-center text-gray-400 mb-16 text-lg">Racing track timeline with pit stops</p>
-
-            <div className="relative">
-              <div className="absolute left-8 top-0 bottom-0 w-2 bg-gradient-to-b from-red-600 via-blue-500 to-red-600 rounded-full border-4 border-black shadow-lg pit-stop-marker racing-track-line"></div>
-
-              {journey.map((milestone, index) => (
-                  <div key={index} className="relative flex items-start mb-16 timeline-item">
-                    <div className="absolute left-6 w-8 h-8 bg-gradient-to-r from-red-600 to-blue-500 rounded-full border-4 border-black shadow-lg pit-stop-marker pulse-marker"></div>
-                    <div className="ml-20">
-                      <Card className="hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300 bg-black border-gray-800 hover:border-red-500/50 hover:scale-105">
-                        <CardHeader>
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <CardTitle className="text-xl text-white">{milestone.title}</CardTitle>
-                            <Badge className="font-mono bg-red-600 text-white neon-glow-red">{milestone.year}</Badge>
-                          </div>
-                          <CardDescription className="flex items-center gap-2 text-base text-gray-300">
-                            <span className="font-semibold">{milestone.company}</span>
-                            <MapPin className="h-4 w-4 text-blue-400" />
-                            <span>{milestone.location}</span>
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-400 text-base">{milestone.description}</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[4] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-16 text-white">Career Map</h2>
-            <p className="text-center text-gray-400 mb-16 text-lg">Interactive journey across South Africa</p>
-
-            <div className="bg-gray-900 rounded-lg p-8 text-center border border-gray-800">
-              <div className="bg-black/50 rounded-lg p-12 mb-8 border border-gray-800">
-                <MapPin className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                <h3 className="text-2xl mb-4 text-white">Interactive Map Coming Soon</h3>
-                <p className="text-gray-400">
-                  Click markers to explore my career journey across Johannesburg and Pretoria
-                </p>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {journey.map((location, index) => (
-                    <Card
-                        key={index}
-                        className="hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer bg-gray-800 border-gray-700 hover:border-blue-500/50 hover:scale-105"
-                    >
-                      <CardContent className="p-4 text-center">
-                        <MapPin className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-                        <h4 className="font-semibold text-white">{location.location}</h4>
-                        <p className="text-sm text-gray-400">{location.year}</p>
-                      </CardContent>
-                    </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[5] = el)}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-16 text-white">Hobbies & Interests</h2>
-
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-blue-500/20 rounded-lg racing-stripe-overlay"></div>
-                <img
-                    src="/superbike-5551086_1280.jpg"
-                    alt="Track day motorcycle racing"
-                    className="rounded-lg shadow-2xl w-full h-80 object-cover border border-gray-800"
-                />
-              </div>
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-2xl font-bold text-red-500">Beyond Code</h3>
-                  <p className="text-lg text-gray-300">
-                    When I'm not engineering high-performance software, you'll find me pursuing other passions that fuel
-                    my creativity and precision.
-                  </p>
-                </div>
-                <div className="grid gap-4">
-                  <Card className="p-4 hover:shadow-lg hover:shadow-red-500/20 transition-all bg-black border-gray-800 hover:border-red-500/50 hover:scale-105">
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-6 w-6 text-red-500" />
-                      <div>
-                        <h4 className="font-semibold text-white">Motorcycle Racing</h4>
-                        <p className="text-sm text-gray-400">Track days and precision riding</p>
-                      </div>
-                    </div>
-                  </Card>
-                  <Card className="p-4 hover:shadow-lg hover:shadow-red-500/20 transition-all bg-black border-gray-800 hover:border-red-500/50 hover:scale-105">
-                    <div className="flex items-center gap-3">
-                      <Dumbbell className="h-6 w-6 text-red-500" />
-                      <div>
-                        <h4 className="font-semibold text-white">Fitness</h4>
-                        <p className="text-sm text-gray-400">Staying in peak physical condition</p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[6] = el)}>
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-16 text-white">Testimonials</h2>
-
-            <div className="relative">
-              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 shadow-lg shadow-red-500/10 testimonial-card">
-                <CardContent className="p-8 text-center">
-                  <Quote className="h-12 w-12 text-red-500 mx-auto mb-6" />
-                  <blockquote className="text-xl md:text-2xl mb-6 text-gray-200">
-                    "{testimonials[currentTestimonial].quote}"
-                  </blockquote>
-                  <div className="flex items-center justify-center gap-4">
-                    <img
-                        src={testimonials[currentTestimonial].avatar || "/placeholder.svg"}
-                        alt={testimonials[currentTestimonial].name}
-                        className="w-12 h-12 rounded-full border-2 border-gray-600"
-                    />
-                    <div className="text-left">
-                      <div className="font-semibold text-white">{testimonials[currentTestimonial].name}</div>
-                      <div className="text-sm text-gray-400">{testimonials[currentTestimonial].role}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-center gap-4 mt-8">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="border-gray-600 text-gray-300 hover:border-red-500 hover:text-red-400 bg-transparent hover:scale-110 transition-all"
-                    onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
-                    onMouseEnter={playHoverSound}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="border-gray-600 text-gray-300 hover:border-blue-500 hover:text-blue-400 bg-transparent hover:scale-110 transition-all"
-                    onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
-                    onMouseEnter={playHoverSound}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="py-20 px-6 bg-gray-900" ref={(el) => (sectionsRef.current[7] = el)}>
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-5xl font-bold text-center mb-4 text-white">Start Your Engine</h2>
-            <p className="text-center text-gray-400 mb-12 text-lg">Ready to accelerate your project?</p>
-
-            <Card className="bg-black border border-gray-800 shadow-lg shadow-red-500/10 contact-card">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-white">Let's Build Something Fast</CardTitle>
-                <CardDescription className="text-base text-gray-300">
-                  Drop me a message and let's discuss your high-performance needs.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Input
-                      placeholder="Your Name"
-                      className="text-base py-3 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500/20 transition-all"
-                  />
-                  <Input
-                      placeholder="Your Email"
-                      type="email"
-                      className="text-base py-3 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
-                  />
-                </div>
-                <Textarea
-                    placeholder="Your Message"
-                    rows={5}
-                    className="text-base bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500/20 transition-all"
-                />
-                <Button
-                    className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-3 engine-start-button hover:scale-105 transition-all duration-300 neon-glow-red"
-                    onMouseEnter={playHoverSoundAndSendEmail}
-                >
-                  Send Message
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <footer className="py-16 px-6 border-t border-gray-800 bg-black">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex items-center gap-8">
-                <a href="https://github.com/Ralephenya" target="_blank" rel="noopener noreferrer">
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
-                      onMouseEnter={playHoverSound}
-                  >
-                    <Github className="h-6 w-6" />
-                  </Button>
-                </a>
-                <a href="https://www.linkedin.com/in/steve-ralephenya-8ab052197/" target="_blank" rel="noopener noreferrer">
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:text-blue-400 text-gray-400 hover:scale-110 transition-all"
-                      onMouseEnter={playHoverSound}
-                  >
-                    <Linkedin className="h-6 w-6" />
-                  </Button>
-                </a>
-                <a href="mailto:bikoralephenya@gmail.com" target="_blank" rel="noopener noreferrer">
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:text-red-500 text-gray-400 hover:scale-110 transition-all"
-                      onMouseEnter={playHoverSound}
-                  >
-                    <Mail className="h-6 w-6" />
-                  </Button>
-                </a>
-              </div>
-              <p className="text-gray-400 text-center font-mono">© 2025 Steve Ralephenya — Engineered with Precision & Speed</p>
-            </div>
-          </div>
-        </footer>
+              <Button
+                type="submit"
+                className="engine-start-button w-full bg-red-600 py-6 text-lg text-white hover:bg-red-700 neon-glow-red"
+              >
+                Send Message
+              </Button>
+            </form>
+            <p className="mt-5 text-center text-sm text-gray-500">
+              Or email directly:{" "}
+              <a href={socials.email} className="text-red-400 hover:underline">
+                {profile.email}
+              </a>
+            </p>
+          </CardContent>
+        </Card>
       </div>
+    </section>
   )
 }
