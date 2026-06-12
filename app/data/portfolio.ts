@@ -243,19 +243,19 @@ export const certifications = [
 // Leave `id` empty to show a "coming soon" placeholder card.
 export const demoVideos = [
   {
-    id: "",
-    title: "Building an MCP server with Claude",
-    description: "Wiring a custom Model Context Protocol server into a real dev workflow.",
+    id: "uW0aeDnCZ4Y",
+    title: "I Connected Claude AI to PayFast Using MCP",
+    description: "Building a Model Context Protocol server that lets Claude drive real PayFast payments.",
+  },
+  {
+    id: "YWMAUDTTT2o",
+    title: "How I Run My Website for Free (Mostly) With AWS",
+    description: "The S3 + CloudFront static-hosting setup behind this very portfolio.",
   },
   {
     id: "",
-    title: "Claude Code in action",
-    description: "Driving a multi-step engineering task end-to-end with Claude Code.",
-  },
-  {
-    id: "",
-    title: "AI agents & subagents demo",
-    description: "Orchestrating subagents to fan out work across a codebase.",
+    title: "More demos incoming",
+    description: "AI agents, subagents and MCP builds — recording soon. Subscribe on YouTube.",
   },
 ]
 
