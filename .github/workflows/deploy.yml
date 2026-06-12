@@ -39,14 +39,10 @@ jobs:
           NEXT_PUBLIC_BACKGROUND_IMAGE: ${{ vars.NEXT_PUBLIC_BACKGROUND_IMAGE }}
           NEXT_PUBLIC_CHAT_ENDPOINT: ${{ vars.NEXT_PUBLIC_CHAT_ENDPOINT }}
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC — no secrets needed)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Preferred: OIDC role (set repo secret AWS_ROLE_ARN). Falls back to
-          # access keys if you set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY instead.
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::017117988452:role/resume-github-actions
           aws-region: af-south-1
 
       - name: Sync to S3

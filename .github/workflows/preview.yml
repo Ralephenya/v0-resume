@@ -1,0 +1,125 @@
+name: Build Visitor Preview
+
+# Triggered by the resume-preview Lambda (repository_dispatch) when a visitor
+# submits an image. Builds the site with their hero image and deploys it to its
+# own bucket (resume-preview-<id>). Writes live status JSON the website polls.
+on:
+  repository_dispatch:
+    types: [preview]
+  workflow_dispatch:
+    inputs:
+      image_url:
+        description: "Hero image URL"
+        required: true
+      preview_id:
+        description: "Unique preview id"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+# Serialize preview builds to keep cost predictable.
+concurrency:
+  group: visitor-preview
+  cancel-in-progress: false
+
+env:
+  STATUS_BUCKET: "0171-1798-8452-my-bucket"
+  PREVIEW_REGION: "af-south-1"
+  CF_BASE: "https://d1brbmrnsse8eq.cloudfront.net"
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve inputs
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "image_url=${{ github.event.inputs.image_url }}" >> "$GITHUB_OUTPUT"
+            echo "preview_id=${{ github.event.inputs.preview_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_url=${{ github.event.client_payload.image_url }}" >> "$GITHUB_OUTPUT"
+            echo "preview_id=${{ github.event.client_payload.preview_id }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::017117988452:role/resume-github-actions
+          aws-region: af-south-1
+
+      - name: Status — building
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          echo '{"step":2,"status":"building","message":"Building your site"}' | \
+            aws s3 cp - "s3://$STATUS_BUCKET/preview/$ID/status.json" \
+            --content-type application/json --cache-control "no-cache"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install & build with visitor hero image
+        env:
+          NEXT_PUBLIC_BACKGROUND_IMAGE: ${{ steps.vars.outputs.image_url }}
+        run: |
+          npm ci --legacy-peer-deps
+          npm run build
+
+      - name: Status — provisioning bucket
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          echo '{"step":3,"status":"provisioning","message":"Provisioning your bucket"}' | \
+            aws s3 cp - "s3://$STATUS_BUCKET/preview/$ID/status.json" \
+            --content-type application/json --cache-control "no-cache"
+
+      - name: Create & configure preview bucket
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          BUCKET="resume-preview-$ID"
+          aws s3api create-bucket --bucket "$BUCKET" --region "$PREVIEW_REGION" \
+            --create-bucket-configuration LocationConstraint="$PREVIEW_REGION"
+          aws s3api put-public-access-block --bucket "$BUCKET" \
+            --public-access-block-configuration BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false
+          aws s3 website "s3://$BUCKET" --index-document index.html --error-document index.html
+          aws s3api put-bucket-policy --bucket "$BUCKET" --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$BUCKET/*\"}]}"
+          aws s3api put-bucket-tagging --bucket "$BUCKET" \
+            --tagging "TagSet=[{Key=purpose,Value=resume-preview},{Key=createdAt,Value=$(date -u +%Y-%m-%dT%H:%M:%SZ)}]"
+
+      - name: Status — deploying
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          echo '{"step":4,"status":"deploying","message":"Publishing to S3"}' | \
+            aws s3 cp - "s3://$STATUS_BUCKET/preview/$ID/status.json" \
+            --content-type application/json --cache-control "no-cache"
+
+      - name: Deploy site to preview bucket
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          BUCKET="resume-preview-$ID"
+          aws s3 sync ./out "s3://$BUCKET" --delete
+
+      - name: Status — live
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          BUCKET="resume-preview-$ID"
+          URL="http://$BUCKET.s3-website.$PREVIEW_REGION.amazonaws.com"
+          printf '{"step":5,"status":"live","url":"%s","message":"Your preview is live"}' "$URL" | \
+            aws s3 cp - "s3://$STATUS_BUCKET/preview/$ID/status.json" \
+            --content-type application/json --cache-control "no-cache"
+          echo "Live at $URL"
+
+      - name: Status — failed
+        if: failure()
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          echo '{"step":-1,"status":"failed","message":"Build failed — please try again"}' | \
+            aws s3 cp - "s3://$STATUS_BUCKET/preview/$ID/status.json" \
+            --content-type application/json --cache-control "no-cache" || true

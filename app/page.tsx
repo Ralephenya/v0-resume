@@ -358,9 +358,10 @@ export default function Portfolio() {
           <div className="mb-8 flex items-center justify-center gap-3">
             <GitBranch className="h-7 w-7 text-blue-400" />
             <p className="text-center text-gray-400">
-              Drop in an image URL and watch it move through{" "}
-              <span className="text-white">GitHub → CodeBuild → S3 → CloudFront</span> — a
-              live walkthrough of how I ship to AWS.
+              Drop in an image URL — I'll run a real{" "}
+              <span className="text-white">GitHub Actions</span> build that deploys a full
+              copy of this site (with your image as the hero) to its own{" "}
+              <span className="text-white">S3 bucket</span>, then hand you the live URL.
             </p>
             <Rocket className="h-7 w-7 text-red-500" />
           </div>
@@ -390,7 +391,7 @@ export default function Portfolio() {
                     </h3>
                   </div>
                   <p className="mb-4 text-sm text-gray-300">
-                    Your preview is live on AWS (S3 + CloudFront). Auto-expires in 2 days:
+                    Your own build is live on its own S3 bucket. Auto-deletes in 2 days:
                   </p>
                   <a
                     href={previewUrl}

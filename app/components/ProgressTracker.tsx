@@ -7,10 +7,10 @@ interface ProgressTrackerProps {
 }
 
 const STAGES = [
-  "Validating image",
-  "Generating preview page",
+  "Queued — pipeline triggered",
+  "Building your site (GitHub Actions)",
+  "Provisioning your S3 bucket",
   "Publishing to S3",
-  "Serving via CloudFront",
   "Preview is live",
 ]
 
