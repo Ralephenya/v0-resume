@@ -390,11 +390,18 @@ export default function Portfolio() {
                     </h3>
                   </div>
                   <p className="mb-4 text-sm text-gray-300">
-                    Your ephemeral preview environment is live (demo link):
+                    Your preview is live on AWS (S3 + CloudFront). Auto-expires in 2 days:
                   </p>
-                  <code className="inline-block break-all rounded bg-black/60 px-4 py-2 font-mono text-sm text-green-300">
-                    {previewUrl}
-                  </code>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-all hover:scale-105 hover:bg-green-700"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                    Open My Live Preview
+                  </a>
+                  <p className="mt-4 break-all font-mono text-xs text-gray-500">{previewUrl}</p>
                 </div>
               )}
             </CardContent>

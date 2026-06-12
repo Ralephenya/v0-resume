@@ -10,11 +10,17 @@ interface SubmissionFormProps {
   onStepChange: (step: number) => void
 }
 
+// Real preview-deployer Lambda (Function URL). Override via env if it ever moves.
+const ENDPOINT =
+  process.env.NEXT_PUBLIC_PREVIEW_ENDPOINT ||
+  "https://vns647rbgryezj5j4apaln2dmy0dexzg.lambda-url.af-south-1.on.aws/"
+
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
 /**
- * Interactive walkthrough of Steve's real CI/CD pipeline. A visitor drops in an
- * image URL and watches the deployment stages play out — mirroring the actual
- * GitHub → CodeBuild → S3 → CloudFront flow behind this site. The preview link
- * is generated client-side so the demo costs nothing to run.
+ * Real CI/CD demo. The visitor submits an image URL; we POST it to a Lambda that
+ * publishes a live preview page to S3 (served via CloudFront) and returns the URL.
+ * The stage feedback interleaves with the actual network call so it reflects real work.
  */
 export default function SubmissionForm({ onSuccess, onStepChange }: SubmissionFormProps) {
   const [pictureUrl, setPictureUrl] = useState("")
@@ -22,38 +28,42 @@ export default function SubmissionForm({ onSuccess, onStepChange }: SubmissionFo
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const runPipeline = async () => {
-    const stages = [
-      { step: 1, delay: 700 },
-      { step: 2, delay: 1100 },
-      { step: 3, delay: 1500 },
-      { step: 4, delay: 1500 },
-      { step: 5, delay: 900 },
-    ]
-    for (const { step, delay } of stages) {
-      onStepChange(step)
-      await new Promise((r) => setTimeout(r, delay))
-    }
-    const slug = Math.random().toString(36).slice(2, 8)
-    onSuccess(
-      `https://preview-${slug}.cloudwithsteve.online/?img=${encodeURIComponent(pictureUrl)}`,
-    )
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    if (!pictureUrl.trim()) return setError("Picture URL is required")
+    if (!pictureUrl.trim()) return setError("Image URL is required")
     if (!/^https?:\/\/.+/.test(pictureUrl))
       return setError("Enter a valid URL starting with http:// or https://")
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return setError("Enter a valid email address")
 
     setIsSubmitting(true)
+    onStepChange(1) // Validating image
+
+    // Fire the real deploy while the early stages animate.
+    const deploy = fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: pictureUrl.trim(), email: email.trim() }),
+    })
+
     try {
-      await runPipeline()
-    } catch {
-      setError("Deployment failed. Please try again.")
+      await delay(700)
+      onStepChange(2) // Generating preview page
+      await delay(700)
+      onStepChange(3) // Publishing to S3
+
+      const res = await deploy
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "Deployment failed")
+
+      onStepChange(4) // CloudFront serving
+      await delay(600)
+      onStepChange(5) // Live
+      await delay(300)
+      onSuccess(data.url)
+    } catch (err: any) {
+      setError(err?.message || "Deployment failed. Please try again.")
       onStepChange(0)
     } finally {
       setIsSubmitting(false)
@@ -68,14 +78,14 @@ export default function SubmissionForm({ onSuccess, onStepChange }: SubmissionFo
         </label>
         <Input
           type="url"
-          placeholder="https://example.com/image.jpg"
+          placeholder="https://example.com/your-image.jpg"
           value={pictureUrl}
           onChange={(e) => setPictureUrl(e.target.value)}
           disabled={isSubmitting}
           className="border-gray-700 bg-gray-800 py-3 text-white placeholder-gray-500 focus:border-red-500 disabled:opacity-50"
         />
         <p className="text-xs text-gray-500">
-          Used to build a preview page so you can watch the deploy produce a live URL.
+          A public image URL — it becomes the hero of your own live preview page.
         </p>
       </div>
 
@@ -89,7 +99,7 @@ export default function SubmissionForm({ onSuccess, onStepChange }: SubmissionFo
           disabled={isSubmitting}
           className="border-gray-700 bg-gray-800 py-3 text-white placeholder-gray-500 focus:border-blue-500 disabled:opacity-50"
         />
-        <p className="text-xs text-gray-500">Get notified when the preview is ready.</p>
+        <p className="text-xs text-gray-500">So I know who took the pipeline for a spin.</p>
       </div>
 
       {error && (

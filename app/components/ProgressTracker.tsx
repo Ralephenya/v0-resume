@@ -7,11 +7,11 @@ interface ProgressTrackerProps {
 }
 
 const STAGES = [
-  "Branch Created",
-  "Commit & PR",
-  "Pipeline Triggered (CodeBuild)",
-  "Test Env Deployed (S3)",
-  "Preview Link Ready",
+  "Validating image",
+  "Generating preview page",
+  "Publishing to S3",
+  "Serving via CloudFront",
+  "Preview is live",
 ]
 
 export default function ProgressTracker({ step }: ProgressTrackerProps) {
