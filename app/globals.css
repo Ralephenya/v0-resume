@@ -13,19 +13,19 @@
   --popover-foreground: oklch(0.95 0 0); /* White text on popover */
   --primary: oklch(0.6 0.15 240); /* Electric blue */
   --primary-foreground: oklch(0.95 0 0); /* White text on primary */
-  --secondary: oklch(0.57 0.16 18); /* Racing red */
+  --secondary: oklch(0.55 0.22 26); /* Racing red */
   --secondary-foreground: oklch(0.95 0 0); /* White text on secondary */
   --muted: oklch(0.2 0 0); /* Dark muted */
   --muted-foreground: oklch(0.6 0 0); /* Gray muted text */
-  --accent: oklch(0.57 0.16 18); /* Racing red accent */
+  --accent: oklch(0.55 0.22 26); /* Racing red accent */
   --accent-foreground: oklch(0.95 0 0); /* White text on accent */
-  --destructive: oklch(0.57 0.16 18); /* Racing red for destructive */
+  --destructive: oklch(0.55 0.22 26); /* Racing red for destructive */
   --destructive-foreground: oklch(0.95 0 0); /* White text on destructive */
   --border: oklch(0.2 0 0); /* Dark borders */
   --input: oklch(0.1 0 0); /* Dark input background */
   --ring: oklch(0.6 0.15 240 / 0.5); /* Electric blue focus ring */
   --chart-1: oklch(0.6 0.15 240); /* Electric blue */
-  --chart-2: oklch(0.57 0.16 18); /* Racing red */
+  --chart-2: oklch(0.55 0.22 26); /* Racing red */
   --chart-3: oklch(0.75 0 0); /* Metallic silver */
   --chart-4: oklch(0.9 0 0); /* Light for contrast */
   --chart-5: oklch(0.3 0 0); /* Dark gray */
@@ -34,7 +34,7 @@
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.6 0.15 240);
   --sidebar-primary-foreground: oklch(0.95 0 0);
-  --sidebar-accent: oklch(0.57 0.16 18);
+  --sidebar-accent: oklch(0.55 0.22 26);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.2 0 0);
   --sidebar-ring: oklch(0.6 0.15 240 / 0.2);
@@ -52,19 +52,19 @@
   --popover-foreground: oklch(1 0 0); /* White text on popover */
   --primary: oklch(0.6 0.15 240); /* Electric blue */
   --primary-foreground: oklch(1 0 0); /* White text on primary */
-  --secondary: oklch(0.57 0.16 18); /* Racing red */
+  --secondary: oklch(0.55 0.22 26); /* Racing red */
   --secondary-foreground: oklch(1 0 0); /* White text on secondary */
   --muted: oklch(0.3 0 0); /* Dark muted */
   --muted-foreground: oklch(0.7 0 0); /* Light muted text */
-  --accent: oklch(0.57 0.16 18); /* Racing red accent */
+  --accent: oklch(0.55 0.22 26); /* Racing red accent */
   --accent-foreground: oklch(1 0 0); /* White text on accent */
-  --destructive: oklch(0.57 0.16 18); /* Racing red */
+  --destructive: oklch(0.55 0.22 26); /* Racing red */
   --destructive-foreground: oklch(1 0 0); /* White text on destructive */
   --border: oklch(0.3 0 0); /* Dark borders */
   --input: oklch(0.15 0 0); /* Dark input background */
   --ring: oklch(0.6 0.15 240 / 0.5); /* Electric blue focus ring */
   --chart-1: oklch(0.6 0.15 240); /* Electric blue */
-  --chart-2: oklch(0.57 0.16 18); /* Racing red */
+  --chart-2: oklch(0.55 0.22 26); /* Racing red */
   --chart-3: oklch(0.75 0 0); /* Metallic silver */
   --chart-4: oklch(0.9 0 0); /* Light for dark mode */
   --chart-5: oklch(0.3 0 0); /* Dark gray */
@@ -72,7 +72,7 @@
   --sidebar-foreground: oklch(1 0 0);
   --sidebar-primary: oklch(0.6 0.15 240);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.57 0.16 18);
+  --sidebar-accent: oklch(0.55 0.22 26);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.3 0 0);
   --sidebar-ring: oklch(0.6 0.15 240 / 0.2);
@@ -124,13 +124,13 @@
    Non-inline @theme so the red-* utility CSS variables are emitted and override
    the defaults site-wide (text-red-*, bg-red-*, border-red-*, etc.). */
 @theme {
-  --color-red-300: #ef8b93;
-  --color-red-400: #e87680;
-  --color-red-500: #db5460;
-  --color-red-600: #c93d49;
-  --color-red-700: #a8323d;
-  --color-red-800: #8a2a33;
-  --color-red-900: #6b232b;
+  --color-red-300: #ff5a63;
+  --color-red-400: #ff2d3a;
+  --color-red-500: #e50914;
+  --color-red-600: #cc0810;
+  --color-red-700: #b00810;
+  --color-red-800: #8c0610;
+  --color-red-900: #66060c;
 }
 
 @layer base {
@@ -182,11 +182,11 @@
   }
 
   .hero-red-text {
-    background: linear-gradient(135deg, #c93d49 0%, #db5460 25%, #e87680 50%, #db5460 75%, #c93d49 100%);
+    background: linear-gradient(135deg, #e50914 0%, #e50914 25%, #ff5a63 50%, #e50914 75%, #e50914 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 30px rgba(219, 84, 96, 0.8));
+    filter: drop-shadow(0 0 30px rgba(229, 9, 20, 0.8));
   }
 
   .hero-overlay-enhanced {
@@ -201,15 +201,15 @@
   }
 
   .hero-button-primary {
-    background: linear-gradient(135deg, #c93d49 0%, #a8323d 50%, #8a2a33 100%);
-    border: 2px solid rgba(219, 84, 96, 0.5);
-    box-shadow: 0 0 20px rgba(219, 84, 96, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, #e50914 0%, #cc0810 50%, #b00810 100%);
+    border: 2px solid rgba(229, 9, 20, 0.5);
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .hero-button-primary:hover {
-    background: linear-gradient(135deg, #db5460 0%, #c93d49 50%, #a8323d 100%);
-    box-shadow: 0 0 30px rgba(219, 84, 96, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #e50914 0%, #e50914 50%, #cc0810 100%);
+    box-shadow: 0 0 30px rgba(229, 9, 20, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-2px) scale(1.05);
   }
 
@@ -232,11 +232,11 @@
     background: linear-gradient(
       45deg,
       transparent 35%,
-      rgba(201, 61, 73, 0.8) 40%,
+      rgba(229, 9, 20, 0.8) 40%,
       rgba(0, 51, 160, 0.8) 45%,
-      rgba(201, 61, 73, 0.8) 50%,
+      rgba(229, 9, 20, 0.8) 50%,
       rgba(0, 51, 160, 0.8) 55%,
-      rgba(201, 61, 73, 0.8) 60%,
+      rgba(229, 9, 20, 0.8) 60%,
       transparent 65%
     );
     background-size: 100px 100px;
@@ -276,12 +276,12 @@
     left: 50%;
     width: 4px;
     height: 80px;
-    background: linear-gradient(to top, #c93d49, #e87680);
+    background: linear-gradient(to top, #e50914, #ff5a63);
     transform-origin: bottom center;
     transform: translate(-50%, -100%) rotate(0deg);
     border-radius: 2px;
     animation: tach-sweep 3s ease-in-out infinite;
-    box-shadow: 0 0 10px #c93d49;
+    box-shadow: 0 0 10px #e50914;
   }
 
   .tach-numbers {
@@ -330,12 +330,12 @@
   }
 
   .neon-text {
-    text-shadow: 0 0 10px #c93d49, 0 0 20px #c93d49, 0 0 30px #c93d49;
+    text-shadow: 0 0 10px #e50914, 0 0 20px #e50914, 0 0 30px #e50914;
   }
 
   .neon-glow-red {
-    box-shadow: 0 0 20px rgba(201, 61, 73, 0.5), inset 0 0 20px rgba(201, 61, 73, 0.1);
-    border: 1px solid rgba(201, 61, 73, 0.3);
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.5), inset 0 0 20px rgba(229, 9, 20, 0.1);
+    border: 1px solid rgba(229, 9, 20, 0.3);
   }
 
   .neon-glow-blue {
@@ -353,10 +353,10 @@
 
   .rev-fill {
     height: 100%;
-    background: linear-gradient(90deg, #0033a0 0%, #c93d49 70%, #e87680 100%);
+    background: linear-gradient(90deg, #0033a0 0%, #e50914 70%, #ff5a63 100%);
     border-radius: 4px;
     transition: width 1s ease-out;
-    box-shadow: 0 0 10px rgba(201, 61, 73, 0.5);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
   }
 
   .racing-line {
@@ -374,9 +374,9 @@
     background: linear-gradient(
       180deg,
       transparent 0%,
-      rgba(201, 61, 73, 0.3) 25%,
+      rgba(229, 9, 20, 0.3) 25%,
       rgba(0, 51, 160, 0.3) 50%,
-      rgba(201, 61, 73, 0.3) 75%,
+      rgba(229, 9, 20, 0.3) 75%,
       transparent 100%
     );
     animation: racing-flow 3s linear infinite;
@@ -397,10 +397,10 @@
 
   @keyframes pit-glow {
     0% {
-      box-shadow: 0 0 10px rgba(201, 61, 73, 0.5);
+      box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
     }
     100% {
-      box-shadow: 0 0 20px rgba(0, 51, 160, 0.8), 0 0 30px rgba(201, 61, 73, 0.5);
+      box-shadow: 0 0 20px rgba(0, 51, 160, 0.8), 0 0 30px rgba(229, 9, 20, 0.5);
     }
   }
 
@@ -408,12 +408,12 @@
     background: linear-gradient(
       45deg,
       transparent 30%,
-      rgba(201, 61, 73, 0.1) 35%,
+      rgba(229, 9, 20, 0.1) 35%,
       rgba(0, 51, 160, 0.1) 40%,
       transparent 45%,
       transparent 55%,
       rgba(0, 51, 160, 0.1) 60%,
-      rgba(201, 61, 73, 0.1) 65%,
+      rgba(229, 9, 20, 0.1) 65%,
       transparent 70%
     );
   }
@@ -493,8 +493,8 @@
       90deg,
       transparent,
       transparent 10px,
-      rgba(201, 61, 73, 0.1) 12px,
-      rgba(201, 61, 73, 0.1) 14px
+      rgba(229, 9, 20, 0.1) 12px,
+      rgba(229, 9, 20, 0.1) 14px
     );
     animation: speed-flow 1s linear infinite;
   }
@@ -541,10 +541,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: radial-gradient(2px 2px at 20px 30px, rgba(201, 61, 73, 0.3), transparent),
+    background-image: radial-gradient(2px 2px at 20px 30px, rgba(229, 9, 20, 0.3), transparent),
       radial-gradient(2px 2px at 40px 70px, rgba(0, 51, 160, 0.4), transparent),
       radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.6), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(201, 61, 73, 0.2), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(229, 9, 20, 0.2), transparent),
       radial-gradient(2px 2px at 160px 30px, rgba(0, 51, 160, 0.3), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
@@ -577,9 +577,9 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(201, 61, 73, 0.05) 25%,
+      rgba(229, 9, 20, 0.05) 25%,
       rgba(0, 51, 160, 0.05) 50%,
-      rgba(201, 61, 73, 0.05) 75%,
+      rgba(229, 9, 20, 0.05) 75%,
       transparent 100%
     );
     animation: speed-blur 3s ease-in-out infinite;
@@ -601,11 +601,11 @@
   /* Dashboard indicators styling */
   .dashboard-indicator {
     background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(201, 61, 73, 0.3);
+    border: 1px solid rgba(229, 9, 20, 0.3);
     border-radius: 8px;
     padding: 8px 12px;
     text-align: center;
-    box-shadow: 0 0 10px rgba(201, 61, 73, 0.2);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.2);
   }
 
   /* Fade in animation for hero text */
@@ -640,7 +640,7 @@
 
   /* Enhanced skill card hover effects */
   .skill-card:hover .rev-fill {
-    box-shadow: 0 0 15px rgba(201, 61, 73, 0.8), 0 0 25px rgba(0, 51, 160, 0.4);
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.8), 0 0 25px rgba(0, 51, 160, 0.4);
     animation: rev-pulse 1s ease-in-out;
   }
 
@@ -656,7 +656,7 @@
 
   /* Racing track line animation */
   .racing-track-line {
-    background: linear-gradient(180deg, #c93d49 0%, #0033a0 25%, #c93d49 50%, #0033a0 75%, #c93d49 100%);
+    background: linear-gradient(180deg, #e50914 0%, #0033a0 25%, #e50914 50%, #0033a0 75%, #e50914 100%);
     background-size: 100% 200%;
     animation: track-flow 4s linear infinite;
   }
@@ -679,11 +679,11 @@
     0%,
     100% {
       transform: scale(1);
-      box-shadow: 0 0 10px rgba(201, 61, 73, 0.5);
+      box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
     }
     50% {
       transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(0, 51, 160, 0.8), 0 0 30px rgba(201, 61, 73, 0.6);
+      box-shadow: 0 0 20px rgba(0, 51, 160, 0.8), 0 0 30px rgba(229, 9, 20, 0.6);
     }
   }
 
@@ -735,17 +735,17 @@
   @keyframes testimonial-glow {
     0%,
     100% {
-      box-shadow: 0 0 20px rgba(201, 61, 73, 0.1);
+      box-shadow: 0 0 20px rgba(229, 9, 20, 0.1);
     }
     50% {
-      box-shadow: 0 0 30px rgba(0, 51, 160, 0.2), 0 0 40px rgba(201, 61, 73, 0.1);
+      box-shadow: 0 0 30px rgba(0, 51, 160, 0.2), 0 0 40px rgba(229, 9, 20, 0.1);
     }
   }
 
   /* Contact card hover effect */
   .contact-card:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 30px rgba(201, 61, 73, 0.3);
+    box-shadow: 0 0 30px rgba(229, 9, 20, 0.3);
   }
 
   /* Scroll-triggered animations */
@@ -787,7 +787,7 @@
 
   /* Enhanced neon effects */
   .neon-glow-red:hover {
-    box-shadow: 0 0 25px rgba(201, 61, 73, 0.7), 0 0 35px rgba(201, 61, 73, 0.5), inset 0 0 25px rgba(201, 61, 73, 0.1);
+    box-shadow: 0 0 25px rgba(229, 9, 20, 0.7), 0 0 35px rgba(229, 9, 20, 0.5), inset 0 0 25px rgba(229, 9, 20, 0.1);
     transform: scale(1.05);
   }
 

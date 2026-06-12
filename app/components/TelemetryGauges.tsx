@@ -51,7 +51,7 @@ export default function TelemetryGauges() {
         label="Commits"
         value={stats.commits}
         max={2000}
-        color="#db5460"
+        color="#e50914"
       />
       <Gauge
         icon={GitPullRequest}
