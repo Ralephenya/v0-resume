@@ -108,12 +108,12 @@ export default function RaceTimeline() {
               strokeLinecap="round"
               strokeDasharray={len}
               strokeDashoffset={len - progress * len}
-              style={{ filter: "drop-shadow(0 0 6px rgba(239,68,68,0.6))" }}
+              style={{ filter: "drop-shadow(0 0 6px rgba(219,84,96,0.6))" }}
             />
             <defs>
               <linearGradient id="trackGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#ef4444" />
+                <stop offset="100%" stopColor="#db5460" />
               </linearGradient>
             </defs>
 
@@ -125,7 +125,7 @@ export default function RaceTimeline() {
                   cy={n.y}
                   r="14"
                   fill="#0a0a0a"
-                  stroke={corners[i].current ? "#22c55e" : "#ef4444"}
+                  stroke={corners[i].current ? "#22c55e" : "#db5460"}
                   strokeWidth="3"
                 />
                 <text
@@ -169,7 +169,7 @@ export default function RaceTimeline() {
               style={{ minHeight: rowH }}
               className="flex flex-col justify-center py-4"
             >
-              <div className="rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 to-black p-5 transition-all duration-300 hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+              <div className="rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 to-black p-5 transition-all duration-300 hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(219,84,96,0.15)]">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="font-mono text-xs uppercase tracking-widest text-red-500">

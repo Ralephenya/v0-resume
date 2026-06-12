@@ -21,12 +21,16 @@ import {
   Award,
   PlayCircle,
   ArrowRight,
+  Rocket,
+  GitBranch,
 } from "lucide-react"
 
 import LightsOut from "./components/LightsOut"
 import TelemetryGauges from "./components/TelemetryGauges"
 import RaceTimeline from "./components/RaceTimeline"
 import PitCrewChat from "./components/PitCrewChat"
+import SubmissionForm from "./components/SubmissionForm"
+import ProgressTracker from "./components/ProgressTracker"
 import {
   profile,
   socials,
@@ -44,6 +48,7 @@ const NAV = [
   { id: "skills", label: "Skills" },
   { id: "projects", label: "Projects" },
   { id: "journey", label: "Journey" },
+  { id: "pipeline", label: "Pipeline" },
   { id: "certs", label: "Trophies" },
   { id: "videos", label: "Demos" },
   { id: "contact", label: "Contact" },
@@ -57,6 +62,8 @@ export default function Portfolio() {
   const [typed, setTyped] = useState("")
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [currentT, setCurrentT] = useState(0)
+  const [pipelineStep, setPipelineStep] = useState(0)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const fullText = profile.tagline
 
@@ -341,6 +348,60 @@ export default function Portfolio() {
         <RaceTimeline />
       </Section>
 
+      {/* ===== CI/CD PIPELINE DEMO ===== */}
+      <Section
+        id="pipeline"
+        title="Pit Lane"
+        subtitle="Watch my CI/CD pipeline run — the same flow that deploys this site"
+      >
+        <div className="mx-auto mb-10 max-w-3xl">
+          <div className="mb-8 flex items-center justify-center gap-3">
+            <GitBranch className="h-7 w-7 text-blue-400" />
+            <p className="text-center text-gray-400">
+              Drop in an image URL and watch it move through{" "}
+              <span className="text-white">GitHub → CodeBuild → S3 → CloudFront</span> — a
+              live walkthrough of how I ship to AWS.
+            </p>
+            <Rocket className="h-7 w-7 text-red-500" />
+          </div>
+
+          <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black">
+            <CardContent className="p-6 md:p-8">
+              <SubmissionForm
+                onSuccess={(url) => setPreviewUrl(url)}
+                onStepChange={(s) => {
+                  setPipelineStep(s)
+                  if (s === 1) setPreviewUrl(null)
+                }}
+              />
+
+              {pipelineStep > 0 && (
+                <div className="mt-8 border-t border-gray-800 pt-8">
+                  <ProgressTracker step={pipelineStep} />
+                </div>
+              )}
+
+              {previewUrl && (
+                <div className="mt-8 rounded-lg border-2 border-green-500/70 bg-green-500/10 p-6 text-center">
+                  <div className="mb-3 flex items-center justify-center gap-2">
+                    <span className="h-3 w-3 animate-pulse rounded-full bg-green-500" />
+                    <h3 className="font-display text-xl font-bold text-green-400">
+                      Deployment Successful
+                    </h3>
+                  </div>
+                  <p className="mb-4 text-sm text-gray-300">
+                    Your ephemeral preview environment is live (demo link):
+                  </p>
+                  <code className="inline-block break-all rounded bg-black/60 px-4 py-2 font-mono text-sm text-green-300">
+                    {previewUrl}
+                  </code>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </Section>
+
       {/* ===== CERTIFICATIONS (trophy wall) ===== */}
       <Section id="certs" title="Trophy Wall" subtitle="Silverware on the shelf" bg="muted">
         <div className="mb-8 grid gap-5 sm:grid-cols-2">
@@ -548,12 +609,32 @@ function ContactSection() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
 
-  const send = (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault()
-    const subject = encodeURIComponent(`Portfolio enquiry from ${name || "a visitor"}`)
-    const body = encodeURIComponent(`${message}\n\n— ${name}${email ? ` (${email})` : ""}`)
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`
+    setStatus("sending")
+    try {
+      // FormSubmit — free form-to-email, delivers to profile.email. No API key.
+      const res = await fetch(`https://formsubmit.co/ajax/${profile.email}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          _subject: `🏁 Portfolio enquiry from ${name || "a visitor"}`,
+          _template: "table",
+        }),
+      })
+      if (!res.ok) throw new Error("send failed")
+      setStatus("sent")
+      setName("")
+      setEmail("")
+      setMessage("")
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
@@ -594,10 +675,22 @@ function ContactSection() {
               />
               <Button
                 type="submit"
-                className="engine-start-button w-full bg-red-600 py-6 text-lg text-white hover:bg-red-700 neon-glow-red"
+                disabled={status === "sending"}
+                className="engine-start-button w-full bg-red-600 py-6 text-lg text-white hover:bg-red-700 neon-glow-red disabled:opacity-60"
               >
-                Send Message
+                {status === "sending" ? "Sending…" : status === "sent" ? "Message Sent ✓" : "Send Message"}
               </Button>
+              {status === "sent" && (
+                <p className="text-center text-sm text-green-400">
+                  🏁 Got it — your message is on its way. I'll be in touch soon.
+                </p>
+              )}
+              {status === "error" && (
+                <p className="text-center text-sm text-red-400">
+                  Something went wrong. Email me directly at{" "}
+                  <a href={socials.email} className="underline">{profile.email}</a>.
+                </p>
+              )}
             </form>
             <p className="mt-5 text-center text-sm text-gray-500">
               Or email directly:{" "}
