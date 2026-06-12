@@ -33,3 +33,6 @@ lambda/**/function.zip
 lambda/**/trust.json
 lambda/**/perms.json
 lambda/**/lifecycle.json
+
+# codebuild/infra working files
+codebuild/*.json

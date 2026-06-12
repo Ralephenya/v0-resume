@@ -1,33 +1,30 @@
 version: 0.2
 
-# Per-visitor PREVIEW build, driven by Resume-PR-Pipeline.
-# The trigger Lambda starts the pipeline with variables PREVIEW_ID + PREVIEW_IMAGE_URL,
-# which arrive here as environment variables. We build the site with the visitor's
-# hero image and deploy it to its own bucket (resume-preview-<id>), auto-cleaned
-# after 2 days by the resume-preview-cleanup Lambda.
+# Per-visitor preview build. Triggered by the resume-preview Lambda via StartBuild
+# with env overrides PREVIEW_ID and PREVIEW_IMAGE_URL. Clones the public repo,
+# builds the site with the visitor's hero image, and deploys to its own bucket.
 env:
   variables:
+    REPO_URL: "https://github.com/Ralephenya/v0-resume.git"
     REGION: "af-south-1"
 
 phases:
   install:
     runtime-versions:
       nodejs: 20
+    commands:
+      - echo "Preview $PREVIEW_ID | image=$PREVIEW_IMAGE_URL"
+      - git clone --depth 1 "$REPO_URL" app
 
   build:
     commands:
-      - echo "Preview build | id=$PREVIEW_ID | image=$PREVIEW_IMAGE_URL"
+      - cd app
       - export NEXT_PUBLIC_BACKGROUND_IMAGE="$PREVIEW_IMAGE_URL"
       - npm ci --legacy-peer-deps
       - npm run build
 
   post_build:
     commands:
-      # Safety: only deploy when a real PREVIEW_ID was passed (skips accidental runs).
-      - |
-        if [ -z "$PREVIEW_ID" ] || [ "$PREVIEW_ID" = "none" ]; then
-          echo "No PREVIEW_ID — skipping deploy."; exit 0;
-        fi
       - export BUCKET="resume-preview-${PREVIEW_ID}"
       - echo "Provisioning $BUCKET"
       - aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" --create-bucket-configuration LocationConstraint="$REGION"
@@ -35,5 +32,5 @@ phases:
       - aws s3 website "s3://$BUCKET" --index-document index.html --error-document index.html
       - aws s3api put-bucket-policy --bucket "$BUCKET" --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$BUCKET/*\"}]}"
       - aws s3api put-bucket-tagging --bucket "$BUCKET" --tagging "TagSet=[{Key=purpose,Value=resume-preview},{Key=createdAt,Value=$(date -u +%Y-%m-%dT%H:%M:%SZ)}]"
-      - aws s3 sync out "s3://$BUCKET" --delete
+      - aws s3 sync app/out "s3://$BUCKET" --delete
       - echo "Live at http://$BUCKET.s3-website.$REGION.amazonaws.com"
