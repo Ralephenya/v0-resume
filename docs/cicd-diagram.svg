@@ -1,0 +1,82 @@
+<svg viewBox="0 0 920 470" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif">
+  <title>Visitor Preview CI/CD Pipeline Architecture</title>
+  <desc>A visitor submits an image to the website form, which calls a Lambda that validates and rate-limits then fires a GitHub Actions build via repository_dispatch. The build deploys a personalized copy of the site to its own S3 bucket and writes a status file the browser polls for live progress. A cleanup Lambda deletes the bucket after two days. GitHub authenticates to AWS via OIDC with no stored keys.</desc>
+
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
+      <path d="M0,0 L6.5,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+    <marker id="ahd" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
+      <path d="M0,0 L6.5,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <text x="460" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#111827">Visitor Preview Pipeline</text>
+  <text x="460" y="45" text-anchor="middle" font-size="12" fill="#6b7280">Submit an image → your own deployed site in ~2 minutes</text>
+
+  <!-- Main flow boxes -->
+  <!-- A: Browser -->
+  <g>
+    <rect x="20" y="70" width="170" height="72" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+    <text x="105" y="100" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Browser form</text>
+    <text x="105" y="120" text-anchor="middle" font-size="11" fill="#6b7280">submits image URL</text>
+  </g>
+  <!-- B: Lambda -->
+  <g>
+    <rect x="250" y="70" width="170" height="72" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+    <text x="335" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Lambda</text>
+    <text x="335" y="116" text-anchor="middle" font-size="10.5" fill="#6b7280">validate · rate-limit</text>
+    <text x="335" y="130" text-anchor="middle" font-size="10.5" fill="#6b7280">fire dispatch</text>
+  </g>
+  <!-- C: GitHub Actions -->
+  <g>
+    <rect x="480" y="70" width="170" height="72" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+    <text x="565" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">GitHub Actions</text>
+    <text x="565" y="116" text-anchor="middle" font-size="10.5" fill="#6b7280">real build</text>
+    <text x="565" y="130" text-anchor="middle" font-size="10.5" fill="#6b7280">(preview mode)</text>
+  </g>
+  <!-- D: Bucket (accent) -->
+  <g>
+    <rect x="710" y="70" width="180" height="72" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+    <text x="800" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">New S3 bucket</text>
+    <text x="800" y="116" text-anchor="middle" font-size="10.5" fill="#6b7280">their own live URL</text>
+    <text x="800" y="131" text-anchor="middle" font-size="10.5" fill="#16a34a" font-weight="600">live in ~2 min</text>
+  </g>
+
+  <!-- Flow arrows -->
+  <line x1="190" y1="106" x2="248" y2="106" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="219" y="98" text-anchor="middle" font-size="9.5" fill="#6b7280">POST</text>
+  <line x1="420" y1="106" x2="478" y2="106" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="449" y="98" text-anchor="middle" font-size="9.5" fill="#6b7280">dispatch</text>
+  <line x1="650" y1="106" x2="708" y2="106" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="679" y="98" text-anchor="middle" font-size="9.5" fill="#6b7280">deploy</text>
+
+  <!-- status.json node -->
+  <g>
+    <rect x="370" y="250" width="210" height="60" rx="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="475" y="276" text-anchor="middle" font-size="13" font-weight="700" fill="#111827">status.json (CloudFront)</text>
+    <text x="475" y="294" text-anchor="middle" font-size="10.5" fill="#6b7280">live build progress</text>
+  </g>
+  <!-- GH Actions writes status -->
+  <path d="M565 142 L565 200 L515 200 L515 248" fill="none" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="572" y="172" font-size="9.5" fill="#6b7280">writes status</text>
+  <!-- Browser polls status (dashed, info color) -->
+  <path d="M370 280 L105 280 L105 144" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ahd)"/>
+  <text x="200" y="296" text-anchor="middle" font-size="9.5" fill="#2563eb">browser polls every 4s</text>
+
+  <!-- Cleanup node -->
+  <g>
+    <rect x="710" y="250" width="180" height="60" rx="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="800" y="276" text-anchor="middle" font-size="13" font-weight="700" fill="#111827">Cleanup Lambda</text>
+    <text x="800" y="294" text-anchor="middle" font-size="10.5" fill="#6b7280">auto-deletes in 2 days</text>
+  </g>
+  <path d="M800 248 L800 144" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+  <text x="808" y="200" font-size="9.5" fill="#6b7280">daily</text>
+
+  <!-- OIDC footer note -->
+  <g>
+    <rect x="300" y="400" width="320" height="44" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+    <text x="460" y="421" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">🔒 GitHub → AWS via OIDC</text>
+    <text x="460" y="437" text-anchor="middle" font-size="10.5" fill="#6b7280">no stored AWS keys · repo-scoped trust</text>
+  </g>
+</svg>
