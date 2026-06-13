@@ -17,20 +17,19 @@ const MAX_LIVE_PREVIEWS = 40 // cost / bucket-limit guard
 const GITHUB_REPO = process.env.GITHUB_REPO || "Ralephenya/v0-resume"
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ""
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-}
+// NOTE: CORS is handled entirely by the Lambda Function URL config
+// (AllowOrigins: ["*"]). Do NOT set Access-Control-* headers here as well, or the
+// browser receives duplicate Access-Control-Allow-Origin values and blocks it.
 const json = (status, body) => ({
   statusCode: status,
-  headers: { "Content-Type": "application/json", ...CORS },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 })
 
 export const handler = async (event) => {
+  // Preflight OPTIONS is answered automatically by the Function URL CORS layer.
   if (event.requestContext?.http?.method === "OPTIONS")
-    return { statusCode: 204, headers: CORS, body: "" }
+    return { statusCode: 204, body: "" }
 
   if (!GITHUB_TOKEN)
     return json(500, { error: "Preview service not configured (missing GitHub token)." })
