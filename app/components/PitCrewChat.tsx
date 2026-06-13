@@ -188,7 +188,7 @@ function localAnswer(qRaw: string): string {
     )
   }
   if (has("ai", "claude", "mcp", "agent", "llm")) {
-    return `AI is a big focus. He holds 6 Anthropic certifications (Claude, Claude Code, Agent Skills, Subagents, Cowork) and builds with the Claude API, MCP servers and agents/subagents. Projects include TaxMate AI and custom MCP integrations. He also architected his team's internal AI adoption roadmap.`
+    return `AI is a big focus. He holds 6 Anthropic certifications (Claude, Claude Code, Agent Skills, Subagents, Cowork) and builds with the Claude API, MCP servers and agents/subagents. He also architected his team's internal AI adoption roadmap.`
   }
   if (has("blazor")) {
     return `Yes — Blazor (both WebAssembly and Server) is core to his stack. At Mphoti Consulting he's leading a Blazor WASM migration of a legacy conveyancing platform, with Ocelot and .NET Aspire.`
@@ -208,7 +208,7 @@ function localAnswer(qRaw: string): string {
       experience.map((e) => `• ${e.span} — ${e.title}, ${e.company}`).join("\n")
     )
   }
-  if (has("project", "built", "portfolio", "taxmate")) {
+  if (has("project", "built", "portfolio")) {
     return (
       "Headline projects:\n" +
       projects.filter((p) => p.featured).map((p) => `• ${p.name} — ${p.blurb}`).join("\n")

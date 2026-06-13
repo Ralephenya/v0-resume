@@ -116,15 +116,6 @@ export const experience = [
 // Headline projects — sanitized for public. Edit blurbs / links freely.
 export const projects = [
   {
-    name: "TaxMate AI",
-    category: "AI",
-    blurb:
-      "An AI-powered South African tax assistant that reads payslips, IRP5/IT3(a) certificates and SARS documents, then explains source codes, PAYE, deductions and credits in plain language — grounded in the Income Tax Act.",
-    stack: ["Claude API", "MCP", "C#", "RAG", "SARS"],
-    url: "#",
-    featured: true,
-  },
-  {
     name: "Blazor WebAssembly Migration",
     category: "Web",
     blurb:
@@ -149,7 +140,7 @@ export const projects = [
       "A Twilio + Front WhatsApp integration that centralises all customer conversations into a shared team inbox with assignment and routing logic for insurance advisors.",
     stack: ["C#", "Web API", "Twilio", "Front"],
     url: "#",
-    featured: false,
+    featured: true,
   },
   {
     name: "ERP & Courier Integrations",
