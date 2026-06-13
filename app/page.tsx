@@ -58,6 +58,12 @@ export default function Portfolio() {
   const backgroundImage =
     process.env.NEXT_PUBLIC_BACKGROUND_IMAGE || "/landing-page-image.jpg"
 
+  // Preview builds (deployed for visitors via the pipeline) run in a reduced,
+  // safe mode: no CI/CD form (prevents recursive builds), no contact/email form,
+  // no AI chat. Set by the preview workflow via NEXT_PUBLIC_PREVIEW_MODE=1.
+  const previewMode = process.env.NEXT_PUBLIC_PREVIEW_MODE === "1"
+  const nav = previewMode ? NAV.filter((n) => n.id !== "pipeline") : NAV
+
   const [scrollY, setScrollY] = useState(0)
   const [typed, setTyped] = useState("")
   const [activeFilter, setActiveFilter] = useState<string>("All")
@@ -124,7 +130,7 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <PitCrewChat />
+      {!previewMode && <PitCrewChat />}
 
       {/* ===== NAV ===== */}
       <nav className="fixed inset-x-0 top-0 z-40 border-b border-gray-800/80 bg-black/85 backdrop-blur-md">
@@ -134,7 +140,7 @@ export default function Portfolio() {
             <span className="text-red-500">.</span>
           </a>
           <div className="hidden items-center gap-6 lg:flex">
-            {NAV.map((n) => (
+            {nav.map((n) => (
               <a
                 key={n.id}
                 href={`#${n.id}`}
@@ -348,7 +354,8 @@ export default function Portfolio() {
         <RaceTimeline />
       </Section>
 
-      {/* ===== CI/CD PIPELINE DEMO ===== */}
+      {/* ===== CI/CD PIPELINE DEMO (hidden in visitor previews) ===== */}
+      {!previewMode && (
       <Section
         id="pipeline"
         title="Pit Lane"
@@ -409,6 +416,7 @@ export default function Portfolio() {
           </Card>
         </div>
       </Section>
+      )}
 
       {/* ===== CERTIFICATIONS (trophy wall) ===== */}
       <Section id="certs" title="Trophy Wall" subtitle="Silverware on the shelf" bg="muted">
@@ -525,7 +533,7 @@ export default function Portfolio() {
       </Section>
 
       {/* ===== CONTACT ===== */}
-      <ContactSection />
+      <ContactSection previewMode={previewMode} />
 
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-gray-800 bg-black px-6 py-12">
@@ -613,11 +621,31 @@ function Stat({ value, label }: { value: string; label: string }) {
   )
 }
 
-function ContactSection() {
+function ContactSection({ previewMode = false }: { previewMode?: boolean }) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
+
+  // In a visitor preview, hide the email form — just point back to the real site.
+  if (previewMode) {
+    return (
+      <section id="contact" data-reveal className="bg-black px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-4xl font-black text-white md:text-5xl">Lights Out</h2>
+          <p className="mx-auto mt-3 mb-8 max-w-lg text-gray-400">
+            This is a live preview built by Steve's CI/CD pipeline. To get in touch with
+            Steve, head to the real site.
+          </p>
+          <a href={profile.site} target="_blank" rel="noopener noreferrer">
+            <Button className="bg-red-600 px-8 py-6 text-lg text-white hover:bg-red-700 neon-glow-red">
+              Visit cloudwithsteve.online
+            </Button>
+          </a>
+        </div>
+      </section>
+    )
+  }
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault()

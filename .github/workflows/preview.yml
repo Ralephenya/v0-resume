@@ -69,6 +69,7 @@ jobs:
       - name: Install & build with visitor hero image
         env:
           NEXT_PUBLIC_BACKGROUND_IMAGE: ${{ steps.vars.outputs.image_url }}
+          NEXT_PUBLIC_PREVIEW_MODE: "1"
         run: |
           npm ci --legacy-peer-deps
           npm run build
