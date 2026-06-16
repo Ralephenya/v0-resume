@@ -145,9 +145,9 @@ app.delete('/previews/:id', requireSecret, (req, res) => {
 // Proxies to the private Ollama app. On timeout/error returns { reply: null }
 // so the frontend falls back to its built-in localAnswer() function.
 
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://cloudwithsteve-ollama.flycast'
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'https://cloudwithsteve-ollama.fly.dev'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:0.5b'
-const CHAT_TIMEOUT_MS = 20000
+const CHAT_TIMEOUT_MS = 45000
 
 const SYSTEM_PROMPT = `You are Pit Crew AI, the assistant on Steve Ralephenya's developer portfolio website. Answer questions about Steve concisely (2-3 sentences max). If asked something unrelated to Steve, politely redirect.
 

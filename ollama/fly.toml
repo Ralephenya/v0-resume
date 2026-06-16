@@ -4,6 +4,9 @@ primary_region = 'jnb'
 [build]
   dockerfile = 'Dockerfile'
 
+[env]
+  OLLAMA_HOST = '0.0.0.0'
+
 [mounts]
   source = 'ollama_models'
   destination = '/root/.ollama'
