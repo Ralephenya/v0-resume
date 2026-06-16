@@ -1,83 +1,55 @@
-# CI/CD — How this site ships (and how the live preview demo works)
+# CI/CD — How this site ships
 
-This repo runs **two independent pipelines**, both authenticating to AWS via **GitHub OIDC** (no stored AWS keys):
+This repo runs **two independent pipelines**.
 
-1. **Main-site deploy** — `git push main` → build → S3 → CloudFront.
-2. **Visitor preview** — a visitor submits an image on the live site → a real GitHub Actions build deploys a personalized copy of the site to its own bucket, then self-destructs after 2 days.
+**Current (active)** — everything on Fly.io:
+1. **Main-site deploy** — `git push main` → build → Fly.io (`cloudwithsteve.fly.dev`).
+2. **Visitor preview** — visitor submits an image → GitHub Actions builds a personalized copy and deploys it as its own Fly.io app, then auto-destructs after 2 days.
 
-> Doubles as show-notes for the YouTube walkthrough. Section headers map to suggested video chapters.
-
----
-
-## 0. The shared foundation — OIDC auth (no secrets)
-
-GitHub proves its identity to AWS with a short-lived token instead of long-lived keys. An IAM role (`resume-github-actions`) trusts GitHub's OIDC provider **only for this repo**:
-
-```json
-{
-  "Effect": "Allow",
-  "Principal": { "Federated": "arn:aws:iam::<acct>:oidc-provider/token.actions.githubusercontent.com" },
-  "Action": "sts:AssumeRoleWithWebIdentity",
-  "Condition": {
-    "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
-    "StringLike":  { "token.actions.githubusercontent.com:sub": "repo:Ralephenya/v0-resume:*" }
-  }
-}
-```
-
-The `sub` condition is the security boundary — a fork or any other repo **cannot** assume the role. Workflows pick it up with:
-
-```yaml
-permissions:
-  id-token: write
-  contents: read
-steps:
-  - uses: aws-actions/configure-aws-credentials@v4
-    with:
-      role-to-assume: arn:aws:iam::<acct>:role/resume-github-actions
-      aws-region: af-south-1
-```
+**Legacy (archived, files kept)** — original AWS setup:
+- S3 + CloudFront main site deploy (`deploy.yml` — **disabled**)
+- Lambda-triggered preview to S3 buckets (`preview.yml` — **disabled**)
+- AWS files: `lambda/`, `buildspec.yml`, old workflows remain in repo for reference.
 
 ---
 
-## 1. Main-site deploy — `.github/workflows/deploy.yml`
+## Current: Fly.io Pipeline (active)
+
+### 1. Main-site deploy — `.github/workflows/deploy-fly.yml`
 
 **Trigger:** push to `main`.
 
 ```
 git push main ──► checkout ──► npm ci ──► next build (static export → ./out)
-            ──► s3 sync (2-pass cache) ──► cloudfront invalidation ──► live
+            ──► flyctl deploy ──► live at cloudwithsteve.fly.dev
 ```
 
-The **two-pass cache** matters:
-- Hashed assets (`page-7f0a1b0e.js`) → `max-age=31536000, immutable` (cache forever).
-- `*.html` → `max-age=0, must-revalidate` (never cache, so new deploys show instantly).
+**How it works:**
+1. GitHub Actions checks out the repo, installs deps, builds a static export (`./out`)
+2. `flyctl deploy --remote-only` builds the Docker image and deploys to `cloudwithsteve`
+3. The `Dockerfile` copies `./out` to an nginx container and exposes port 80
+4. Custom domain `cloudwithsteve.online` has DNS A/AAAA records pointing to Fly.io
 
-Then `cloudfront create-invalidation --paths "/*"` flushes the edge.
-
-> `cloudwithsteve.online` is a registrar 301-forward to the CloudFront domain, which drops sub-paths — that's why deep links use the CloudFront URL.
+**Key config:**
+- `fly.toml`: `cloudwithsteve`, `jnb` region, `shared-cpu-1x`, 256MB, auto-stop
+- `Dockerfile`: multi-stage build (Node → static export → nginx serve)
 
 ---
 
-## 2. Visitor preview — the interactive demo
-
-Four parts + a status file that bridges the async build back to the browser.
+### 2. Visitor preview — the interactive demo (Fly.io)
 
 ```
- Browser form ──POST imageUrl──► Lambda (resume-preview)
+ Browser form ──POST imageUrl──► Trigger API (cloudwithsteve-trigger.fly.dev)
       ▲                              │ validate image · rate-limit (max 40) · write status
-      │                              └─repository_dispatch─► GitHub Actions (preview.yml)
+      │                              └─repository_dispatch─► GitHub Actions (preview-fly.yml)
       │                                                          │ build w/ hero image + PREVIEW_MODE
-      │ polls preview/<id>/status.json                           │ create resume-preview-<id> bucket
-      └──────────────◄── writes status at each phase ◄───────────┘ deploy → http://...s3-website...
-                                                          (cleanup Lambda deletes bucket after 2 days)
+      │ polls /status/<id>                                       │ fly apps create cloudwithsteve-preview-<id>
+      └──────────────◄── updates status at each phase ◄───────────┘ fly deploy → https://cloudwithsteve-preview-<id>.fly.dev
+                                                          (GA cron destroys app after 2 days)
 ```
 
-### Why GitHub Actions (not CodeBuild)?
-The original demo used CodeBuild, but this AWS account is capped at **0 concurrent builds** (`Cannot have more than 0 builds in queue` — needs an AWS support case to lift). GitHub Actions is free (2,000 min/mo), unblocked, and a genuinely real build. *(Great "build in public" beat for the video.)*
-
-### 2a. The form — `app/components/SubmissionForm.tsx`
-POSTs the image, then **polls a status file** every 4s to drive the on-screen stages — so the progress shown is the real build, not a fake animation.
+**2a. The form** — `app/components/SubmissionForm.tsx`
+POSTs the image, then polls the trigger API's status endpoint every 4s.
 
 ```ts
 const { statusUrl, previewUrl } = await (await fetch(ENDPOINT, {
@@ -93,79 +65,51 @@ while (Date.now() < deadline) {
 }
 ```
 
-### 2b. The trigger Lambda — `lambda/preview/index.mjs`
-Public Function URL. Validate → rate-limit → write initial status → fire the build.
+**2b. The trigger API** — `trigger-api/index.js` (Express app on Fly.io)
+- Public endpoint on `cloudwithsteve-trigger.fly.dev`
+- Validates the image URL, enforces a 40-preview rate cap
+- Stores status in SQLite (persistent via Fly.io Volume)
+- Fires `repository_dispatch (type: preview-fly)` via GitHub API
+- Status endpoints: `GET /status/:id` (public), `POST /status/:id` (needs `x-status-secret`), `GET /previews` and `DELETE /previews/:id` (for cleanup)
 
-```js
-// validate it's a real image (<=12MB), cap live previews, then:
-await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
-  method: "POST",
-  headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: "application/vnd.github+json" },
-  body: JSON.stringify({ event_type: "preview", client_payload: { image_url, preview_id } })
-})
-```
-
-The `GITHUB_TOKEN` lives **only** in the Lambda env — never in the browser. That's the whole reason the proxy Lambda exists.
-
-> **CORS gotcha (fixed):** the Function URL CORS config *and* the Lambda code both set `Access-Control-Allow-Origin`, producing duplicate headers the browser rejects. Fix: let the Function URL own CORS; don't set it in code.
-
-### 2c. The build — `.github/workflows/preview.yml`
-Listens for `repository_dispatch (type: preview)`, builds with the visitor's hero image **in reduced preview mode**, provisions a new bucket, deploys, and writes status at each phase.
-
-```yaml
-on: { repository_dispatch: { types: [preview] } }
-concurrency: { group: visitor-preview }   # serialize = predictable cost
-...
-- env:
-    NEXT_PUBLIC_BACKGROUND_IMAGE: ${{ steps.vars.outputs.image_url }}
-    NEXT_PUBLIC_PREVIEW_MODE: "1"
-  run: npm ci --legacy-peer-deps && npm run build
-- run: |
-    aws s3api create-bucket --bucket "resume-preview-$ID" --region af-south-1 ...
-    aws s3 website "s3://resume-preview-$ID" --index-document index.html ...
-    aws s3 sync ./out "s3://resume-preview-$ID" --delete
-```
-
-**The status file is the clever glue:** GitHub Actions can't call back to the browser, so the workflow writes `preview/<id>/status.json` to the main bucket; the page polls it over CloudFront (HTTPS, same origin).
+**2c. The build** — `.github/workflows/preview-fly.yml`
+Triggered by `repository_dispatch (type: preview-fly)`:
+1. Updates status → "building"
+2. Builds static site with visitor's hero image + `NEXT_PUBLIC_PREVIEW_MODE=1`
+3. Creates a new Fly.io app: `cloudwithsteve-preview-<id>`
+4. Generates a `Dockerfile` + `fly.toml` in a temp dir and deploys
+5. Updates status → "live" with the preview URL
 
 **Preview mode** (`NEXT_PUBLIC_PREVIEW_MODE=1`, read in `app/page.tsx`) hides the risky bits from a stranger's clone:
-- the CI/CD form (so a preview can't recursively spawn builds),
-- the contact/email form (→ a "visit real site" button),
+- the CI/CD form (prevents recursive builds),
+- the contact/email form (shows "visit real site" button),
 - the AI chat.
 
-### 2d. Auto-cleanup — `lambda/cleanup/index.mjs`
-A lifecycle rule expires *objects* but never deletes a *bucket*, so a daily EventBridge-triggered Lambda empties + deletes any `resume-preview-*` bucket older than 2 days.
+**2d. Auto-cleanup** — `.github/workflows/preview-cleanup-fly.yml`
+Daily cron (3am UTC). Queries the trigger API for previews older than 2 days, destroys the Fly.io apps, and removes status records from SQLite.
 
 ---
 
-## 3. Guardrails (cost + safety)
+### 3. Fly.io Guardrails
 
 | Guard | Where | Effect |
 |---|---|---|
-| Image validation (type + ≤12 MB) | Lambda | reject junk early |
-| Max 40 live previews | Lambda (`429`) | cap bucket count + cost |
-| Serialized builds | `preview.yml` concurrency | no parallel pile-up |
+| Image validation (type + ≤12 MB) | Trigger API | reject junk early |
+| Max 40 live previews | Trigger API (`429`) | cap app count + cost |
+| Serialized builds | `preview-fly.yml` concurrency | no parallel pile-up |
 | Preview mode hides CI/CD form | `page.tsx` | no recursive builds |
-| 2-day auto-delete | cleanup Lambda | bounded storage |
-| Scoped IAM (`resume-preview-*`) | role policies | contained blast radius |
-| OIDC `sub` = this repo only | trust policy | only this repo can deploy |
-
-Build minutes: GitHub free tier. AWS cost: a few cents of S3.
+| 2-day auto-delete | cleanup workflow | bounded apps |
+| Auto-stop machines | `fly.toml` min_machines_running = 0 | $0 when idle |
 
 ---
 
-## 4. Infra reference
+## Legacy: AWS Pipeline (archived, files kept)
 
-| Thing | Value |
-|---|---|
-| Prod bucket | `0171-1798-8452-my-bucket` (af-south-1) |
-| CloudFront | `E2VV89C2YG4XWJ` → `d1brbmrnsse8eq.cloudfront.net` |
-| OIDC role | `resume-github-actions` |
-| Trigger Lambda | `resume-preview` (Function URL) |
-| Cleanup Lambda | `resume-preview-cleanup` + EventBridge `resume-preview-cleanup-daily` |
-| Workflows | `deploy.yml` (main site), `preview.yml` (visitor previews) |
+Originally deployed to S3 + CloudFront. Files remain in repo for reference:
+- `lambda/preview/index.mjs` — trigger Lambda (Function URL)
+- `lambda/cleanup/index.mjs` — daily cleanup Lambda
+- `buildspec.yml` — CodeBuild spec (used before GitHub Actions)
+- `.github/workflows/deploy.yml` — S3 + CloudFront deploy (disabled)
+- `.github/workflows/preview.yml` — S3 bucket preview deploy (disabled)
 
-## 🔒 Don't show on camera
-- The `GITHUB_TOKEN` and the Lambda env page.
-- (Optional) blur the AWS account ID in ARNs.
-- The Function URL is public by design — fine to show, it's rate-limited.
+See git history for the full AWS setup. If needed, re-enable the workflows in GitHub Actions settings and update DNS to point back to CloudFront.
