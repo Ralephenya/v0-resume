@@ -87,7 +87,7 @@ export default function PitCrewChat() {
             <div>
               <div className="font-display text-sm font-bold text-white">Pit Crew AI</div>
               <div className="text-[10px] uppercase tracking-wider text-gray-400">
-                {ENDPOINT ? "Powered by Claude" : "Ask about Steve"}
+                {ENDPOINT ? "Powered by Ollama" : "Ask about Steve"}
               </div>
             </div>
           </div>
