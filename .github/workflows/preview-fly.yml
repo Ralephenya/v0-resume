@@ -93,38 +93,34 @@ jobs:
           ID="${{ steps.vars.outputs.preview_id }}"
           APP="cloudwithsteve-preview-$ID"
 
-          # Build a self-contained deploy directory with the static output + nginx
           DEPLOY_DIR=$(mktemp -d)
           cp -r ./out "$DEPLOY_DIR/out"
 
-          cat > "$DEPLOY_DIR/Dockerfile" << 'DOCKEREOF'
-          FROM nginx:alpine
-          COPY out /usr/share/nginx/html
-          RUN printf 'server {\n  listen 80;\n  root /usr/share/nginx/html;\n  index index.html;\n  location / { try_files $uri $uri/ /index.html; }\n  gzip on;\n  gzip_types text/plain text/css application/json application/javascript text/javascript;\n}\n' > /etc/nginx/conf.d/default.conf
-          EXPOSE 80
-          DOCKEREOF
+          # Dockerfile — no leading whitespace (heredoc indent would break it)
+          printf '%s\n' \
+            'FROM nginx:alpine' \
+            'COPY out /usr/share/nginx/html' \
+            'RUN printf "server {\n  listen 80;\n  root /usr/share/nginx/html;\n  index index.html;\n  location / { try_files \$uri \$uri/ /index.html; }\n  gzip on;\n}\n" > /etc/nginx/conf.d/default.conf' \
+            'EXPOSE 80' \
+            > "$DEPLOY_DIR/Dockerfile"
 
-          # Write fly.toml with correct app name
-          cat > "$DEPLOY_DIR/fly.toml" << TOMLEOF
-          app = '$APP'
-          primary_region = 'jnb'
-
-          [http_service]
-            internal_port = 80
-            force_https = true
-            auto_stop_machines = 'stop'
-            auto_start_machines = true
-            min_machines_running = 0
-            processes = ['app']
-
-          [[vm]]
-            size = 'shared-cpu-1x'
-            memory = '256mb'
-            cpu_kind = 'shared'
-          TOMLEOF
+          # fly.toml with the real app name
+          printf 'app = "%s"\n' "$APP" > "$DEPLOY_DIR/fly.toml"
+          printf 'primary_region = "jnb"\n\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '[http_service]\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  internal_port = 80\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  force_https = true\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  auto_stop_machines = "stop"\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  auto_start_machines = true\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  min_machines_running = 0\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  processes = ["app"]\n\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '[[vm]]\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  size = "shared-cpu-1x"\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  memory = "256mb"\n' >> "$DEPLOY_DIR/fly.toml"
+          printf '  cpu_kind = "shared"\n' >> "$DEPLOY_DIR/fly.toml"
 
           cd "$DEPLOY_DIR"
-          flyctl deploy --app "$APP"
+          flyctl deploy --app "$APP" --depot=false
 
       - name: Status — live
         run: |
