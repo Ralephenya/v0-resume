@@ -368,7 +368,7 @@ export default function Portfolio() {
               Drop in an image URL — I'll run a real{" "}
               <span className="text-white">GitHub Actions</span> build that deploys a full
               copy of this site (with your image as the hero) to its own{" "}
-              <span className="text-white">S3 bucket</span>, then hand you the live URL.
+              <span className="text-white">Fly.io app</span>, then hand you the live URL.
             </p>
             <Rocket className="h-7 w-7 text-red-500" />
           </div>
@@ -398,7 +398,7 @@ export default function Portfolio() {
                     </h3>
                   </div>
                   <p className="mb-4 text-sm text-gray-300">
-                    Your own build is live on its own S3 bucket. Auto-deletes in 2 days:
+                    Your own build is live on its own Fly.io app. Auto-deletes in 2 days:
                   </p>
                   <a
                     href={previewUrl}

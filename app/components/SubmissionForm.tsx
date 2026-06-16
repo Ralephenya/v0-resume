@@ -12,7 +12,7 @@ interface SubmissionFormProps {
 
 const ENDPOINT =
   process.env.NEXT_PUBLIC_PREVIEW_ENDPOINT ||
-  "https://vns647rbgryezj5j4apaln2dmy0dexzg.lambda-url.af-south-1.on.aws/"
+  "https://cloudwithsteve-trigger.fly.dev/"
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 

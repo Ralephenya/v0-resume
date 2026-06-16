@@ -9,8 +9,8 @@ interface ProgressTrackerProps {
 const STAGES = [
   "Queued — pipeline triggered",
   "Building your site (GitHub Actions)",
-  "Provisioning your S3 bucket",
-  "Publishing to S3",
+  "Provisioning your Fly.io app",
+  "Publishing to Fly.io",
   "Preview is live",
 ]
 

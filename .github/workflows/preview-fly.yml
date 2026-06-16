@@ -1,0 +1,147 @@
+name: Build Visitor Preview (Fly.io)
+
+# Triggered by cloudwithsteve-trigger API (repository_dispatch) when a visitor
+# submits an image. Builds the site with their hero image, creates a new Fly.io
+# app, deploys to it, and updates the trigger API status at each step.
+on:
+  repository_dispatch:
+    types: [preview-fly]
+  workflow_dispatch:
+    inputs:
+      image_url:
+        description: "Hero image URL"
+        required: true
+      preview_id:
+        description: "Unique preview id"
+        required: true
+
+concurrency:
+  group: visitor-preview-fly
+  cancel-in-progress: false
+
+env:
+  TRIGGER_API: "https://cloudwithsteve-trigger.fly.dev"
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve inputs
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "image_url=${{ github.event.inputs.image_url }}" >> "$GITHUB_OUTPUT"
+            echo "preview_id=${{ github.event.inputs.preview_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_url=${{ github.event.client_payload.image_url }}" >> "$GITHUB_OUTPUT"
+            echo "preview_id=${{ github.event.client_payload.preview_id }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Status — building
+        run: |
+          curl -sf -X POST "$TRIGGER_API/status/${{ steps.vars.outputs.preview_id }}" \
+            -H "Content-Type: application/json" \
+            -H "x-status-secret: ${{ secrets.PREVIEW_STATUS_SECRET }}" \
+            -d '{"step":2,"status":"building","message":"Building your site"}'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install & build with visitor hero image
+        env:
+          NEXT_PUBLIC_BACKGROUND_IMAGE: ${{ steps.vars.outputs.image_url }}
+          NEXT_PUBLIC_PREVIEW_MODE: "1"
+        run: |
+          npm ci --legacy-peer-deps
+          npm run build
+
+      - name: Status — provisioning
+        run: |
+          curl -sf -X POST "$TRIGGER_API/status/${{ steps.vars.outputs.preview_id }}" \
+            -H "Content-Type: application/json" \
+            -H "x-status-secret: ${{ secrets.PREVIEW_STATUS_SECRET }}" \
+            -d '{"step":3,"status":"provisioning","message":"Provisioning your Fly.io app"}'
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Create preview Fly.io app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          APP="cloudwithsteve-preview-$ID"
+          flyctl apps create "$APP" --org personal || echo "App may already exist"
+
+      - name: Status — deploying
+        run: |
+          curl -sf -X POST "$TRIGGER_API/status/${{ steps.vars.outputs.preview_id }}" \
+            -H "Content-Type: application/json" \
+            -H "x-status-secret: ${{ secrets.PREVIEW_STATUS_SECRET }}" \
+            -d '{"step":4,"status":"deploying","message":"Publishing to Fly.io"}'
+
+      - name: Deploy preview to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          APP="cloudwithsteve-preview-$ID"
+
+          # Build a self-contained deploy directory with the static output + nginx
+          DEPLOY_DIR=$(mktemp -d)
+          cp -r ./out "$DEPLOY_DIR/out"
+
+          cat > "$DEPLOY_DIR/Dockerfile" << 'DOCKEREOF'
+          FROM nginx:alpine
+          COPY out /usr/share/nginx/html
+          RUN printf 'server {\n  listen 80;\n  root /usr/share/nginx/html;\n  index index.html;\n  location / { try_files $uri $uri/ /index.html; }\n  gzip on;\n  gzip_types text/plain text/css application/json application/javascript text/javascript;\n}\n' > /etc/nginx/conf.d/default.conf
+          EXPOSE 80
+          DOCKEREOF
+
+          # Write fly.toml with correct app name
+          cat > "$DEPLOY_DIR/fly.toml" << TOMLEOF
+          app = '$APP'
+          primary_region = 'jnb'
+
+          [http_service]
+            internal_port = 80
+            force_https = true
+            auto_stop_machines = 'stop'
+            auto_start_machines = true
+            min_machines_running = 0
+            processes = ['app']
+
+          [[vm]]
+            size = 'shared-cpu-1x'
+            memory = '256mb'
+            cpu_kind = 'shared'
+          TOMLEOF
+
+          cd "$DEPLOY_DIR"
+          flyctl deploy --app "$APP"
+
+      - name: Status — live
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          APP="cloudwithsteve-preview-$ID"
+          URL="https://$APP.fly.dev"
+          curl -sf -X POST "$TRIGGER_API/status/$ID" \
+            -H "Content-Type: application/json" \
+            -H "x-status-secret: ${{ secrets.PREVIEW_STATUS_SECRET }}" \
+            -d "{\"step\":5,\"status\":\"live\",\"url\":\"$URL\",\"message\":\"Your preview is live\"}"
+          echo "Live at $URL"
+
+      - name: Status — failed
+        if: failure()
+        run: |
+          ID="${{ steps.vars.outputs.preview_id }}"
+          curl -sf -X POST "$TRIGGER_API/status/$ID" \
+            -H "Content-Type: application/json" \
+            -H "x-status-secret: ${{ secrets.PREVIEW_STATUS_SECRET }}" \
+            -d '{"step":-1,"status":"failed","message":"Build failed — please try again"}' || true

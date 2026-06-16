@@ -1,0 +1,55 @@
+name: Cleanup Fly.io Previews
+
+# Runs daily. Fetches all previews from the trigger API, destroys Fly.io apps
+# older than 2 days, and removes their status records.
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 03:00 UTC daily
+  workflow_dispatch: {}
+
+env:
+  TRIGGER_API: "https://cloudwithsteve-trigger.fly.dev"
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Destroy previews older than 2 days
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          PREVIEW_STATUS_SECRET: ${{ secrets.PREVIEW_STATUS_SECRET }}
+        run: |
+          PREVIEWS=$(curl -sf "$TRIGGER_API/previews" \
+            -H "x-status-secret: $PREVIEW_STATUS_SECRET")
+
+          if [ -z "$PREVIEWS" ] || [ "$PREVIEWS" = "[]" ]; then
+            echo "No previews to clean up."
+            exit 0
+          fi
+
+          TWO_DAYS_MS=$((2 * 24 * 60 * 60 * 1000))
+          NOW_MS=$(date +%s%3N)
+          CUTOFF_MS=$(( NOW_MS - TWO_DAYS_MS ))
+
+          echo "$PREVIEWS" | python3 -c "
+          import sys, json
+          previews = json.load(sys.stdin)
+          cutoff = $CUTOFF_MS
+          for p in previews:
+              if p['created_at'] < cutoff:
+                  print(p['id'])
+          " | while read ID; do
+            APP="cloudwithsteve-preview-$ID"
+            echo "Destroying $APP ..."
+            flyctl apps destroy "$APP" --yes 2>/dev/null || echo "App $APP not found, skipping."
+
+            # Remove status record from trigger API
+            curl -sf -X DELETE "$TRIGGER_API/previews/$ID" \
+              -H "x-status-secret: $PREVIEW_STATUS_SECRET" || true
+
+            echo "Cleaned up $ID"
+          done
+          echo "Cleanup complete."
