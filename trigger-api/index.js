@@ -147,7 +147,7 @@ app.delete('/previews/:id', requireSecret, (req, res) => {
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'https://cloudwithsteve-ollama.fly.dev'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:0.5b'
-const CHAT_TIMEOUT_MS = 45000
+const CHAT_TIMEOUT_MS = 90000
 
 const SYSTEM_PROMPT = `You are Pit Crew AI, the assistant on Steve Ralephenya's developer portfolio website. Answer questions about Steve concisely (2-3 sentences max). If asked something unrelated to Steve, politely redirect.
 

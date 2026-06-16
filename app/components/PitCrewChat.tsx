@@ -27,6 +27,8 @@ export default function PitCrewChat() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState("")
   const [thinking, setThinking] = useState(false)
+  const [wakingUp, setWakingUp] = useState(false)
+  const [aiReady, setAiReady] = useState(false)
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "bot",
@@ -35,9 +37,31 @@ export default function PitCrewChat() {
   ])
   const endRef = useRef<HTMLDivElement>(null)
 
+  // Pre-warm Ollama when the chat panel opens so first question gets AI
+  useEffect(() => {
+    if (!open || !ENDPOINT) return
+    // Only warm up if AI hasn't been marked ready yet this session
+    if (aiReady) return
+    setWakingUp(true)
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "warmup" }),
+    })
+      .then(() => {
+        setWakingUp(false)
+        setAiReady(true)
+      })
+      .catch(() => {
+        // Even on timeout/failure Ollama is starting in background
+        setWakingUp(false)
+        setAiReady(true)
+      })
+  }, [open, aiReady])
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, open, thinking])
+  }, [messages, open, thinking, wakingUp])
 
   const send = async (text: string) => {
     const q = text.trim()
@@ -87,7 +111,7 @@ export default function PitCrewChat() {
             <div>
               <div className="font-display text-sm font-bold text-white">Pit Crew AI</div>
               <div className="text-[10px] uppercase tracking-wider text-gray-400">
-                {ENDPOINT ? "Powered by Ollama" : "Ask about Steve"}
+                {ENDPOINT ? (aiReady ? "AI ready — Powered by Ollama" : wakingUp ? "Waking up AI…" : "Powered by Ollama") : "Ask about Steve"}
               </div>
             </div>
           </div>
@@ -109,12 +133,23 @@ export default function PitCrewChat() {
                 </div>
               </div>
             ))}
-            {thinking && (
+            {wakingUp && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-gray-800 px-3 py-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 rounded-2xl bg-gray-800 px-3 py-2 text-sm text-yellow-400">
                   <span className="inline-flex gap-1">
                     <Dot /> <Dot /> <Dot />
                   </span>
+                  Waking up AI…
+                </div>
+              </div>
+            )}
+            {thinking && (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl bg-gray-800 px-3 py-2 text-sm text-gray-400">
+                  <span className="inline-flex gap-1">
+                    <Dot /> <Dot /> <Dot />
+                  </span>
+                  AI is thinking…
                 </div>
               </div>
             )}
